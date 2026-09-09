@@ -349,6 +349,17 @@ canvas{max-width:100%;height:auto}
 .ver::before{content:"\2713";font-weight:800;margin-right:4px}
 .ver-bar{margin-top:10px;background:var(--lime);border:var(--bd);padding:8px 11px;
   font-size:12px;font-weight:800;line-height:1.6}
+
+/* ── 만든 사람 ───────────────────────────── */
+footer .wrap{align-items:center}
+.credit{margin-left:auto;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.credit b{background:var(--lime);color:var(--ink);border:2px solid var(--lime);
+  padding:3px 10px;font-weight:800;transform:rotate(-1.5deg);display:inline-block}
+@media (max-width:560px){
+  .credit{margin-left:0;margin-top:4px}
+}
+
+.step .n.any{font-size:16px;font-weight:700;letter-spacing:0}
 </style>
 </head>
 <body>
@@ -411,7 +422,8 @@ canvas{max-width:100%;height:auto}
       </div>
     </div>
     <div class="fbottom">
-      <div class="cnt">지금 조건에 <b id="cnt">0</b>곳</div>
+      <div class="cnt">지금 조건에 <b id="cnt">0</b>곳<span id="totalWrap"></span></div>
+      <button class="btn" id="showAll">전체 보기</button>
       <button class="btn" id="reset">초기화</button>
       <button class="btn btn-main" id="openRoul">룰렛 돌리기</button>
     </div>
@@ -464,6 +476,7 @@ canvas{max-width:100%;height:auto}
   <div class="wrap">
     <span>회식각</span>
     <span>가격은 변한다. 예약 전에 전화 한 번.</span>
+    <span class="credit">만든 사람 <b>쩝쩝박사</b></span>
   </div>
 </footer>
 
@@ -1040,16 +1053,17 @@ function matches(p){
     if(p.budgetDrink<S.min) return false;
     if(S.max<BMAX&&p.budgetDrink>S.max) return false;
   }
-  if(isFinite(p.capacity)&&S.head>p.capacity) return false;
+  if(S.head&&isFinite(p.capacity)&&S.head>p.capacity) return false;
   if(S.needs.has("room")&&hasRoom(p)!==true) return false;
   if(S.needs.has("parking")&&p.parking!==true) return false;
   if(S.needs.has("quiet")&&p.noise==="시끄러움") return false;
   return true;
 }
-const fits=p=>p.fitMin&&p.fitMax&&S.head>=p.fitMin&&S.head<=p.fitMax;
+const fits=p=>S.head&&p.fitMin&&p.fitMax&&S.head>=p.fitMin&&S.head<=p.fitMax;
 function fitScore(p){
   let s=p.score*10;
-  if(!p.fitMin||!p.fitMax) s-=4;                 /* 정보가 없으면 살짝 뒤로 */
+  if(!S.head) {}                                /* 인원 무관이면 인원 가중치 없음 */
+  else if(!p.fitMin||!p.fitMax) s-=4;           /* 정보가 없으면 살짝 뒤로 */
   else if(fits(p)) s+=25;
   else s-=Math.min(20,Math.abs(S.head-(S.head<p.fitMin?p.fitMin:p.fitMax))*2);
   s+=(100000-(p.budgetDrink||60000))/9000;   /* 같은 조건이면 저렴한 쪽을 살짝 위로 */
@@ -1069,10 +1083,12 @@ function filtered(){
 function render(){
   const list=filtered();
   $("#cnt").textContent=list.length;
+  const total=DATA.filter(p=>p.name).length;
+  const tw=$("#totalWrap");
+  if(tw) tw.textContent = list.length<total ? ` (전체 ${total}곳)` : "";
   const rl=budgetLabel();
-  $("#listTitle").textContent=HEAD_OFF
-    ? (isAllBudget()?"전체 후보":`인당 ${rl}`)
-    : `${S.head}명 / ${isAllBudget()?"예산 전체":`인당 ${rl}`}`;
+  const hl = (HEAD_OFF||!S.head) ? "인원 무관" : `${S.head}명`;
+  $("#listTitle").textContent=`${hl} / ${isAllBudget()?"예산 전체":`인당 ${rl}`}`;
   const box=$("#cards");
   if(!list.length){
     box.innerHTML=`<div class="empty">조건에 맞는 곳이 없어. 예산 구간을 넓히거나 필수 조건을 하나 빼봐.<br><br>
@@ -1322,8 +1338,16 @@ $("#bmin").addEventListener("input",e=>{
 $("#bmax").addEventListener("input",e=>{
   S.max=Math.max(+e.target.value, S.min+5000);
   syncBudget(); render();});
-$("#minus").onclick=()=>{S.head=Math.max(2,S.head-1);$("#headVal").textContent=S.head;render();};
-$("#plus").onclick=()=>{S.head=Math.min(60,S.head+1);$("#headVal").textContent=S.head;render();};
+function drawHead(){
+  $("#headVal").textContent=S.head?S.head:"무관";
+  $("#headVal").classList.toggle("any",!S.head);
+}
+$("#minus").onclick=()=>{
+  S.head = !S.head ? null : (S.head<=2 ? null : S.head-1);
+  drawHead();render();};
+$("#plus").onclick=()=>{
+  S.head = !S.head ? 2 : Math.min(60,S.head+1);
+  drawHead();render();};
 $("#needs").addEventListener("click",e=>{
   const b=e.target.closest("[data-need]");if(!b)return;
   const on=b.getAttribute("aria-pressed")==="true";
@@ -1334,12 +1358,16 @@ $("#sorts").addEventListener("click",e=>{
   S.sort=b.dataset.sort;
   [...$("#sorts").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render();});
 window.__reset=()=>{
-  S.range="all";S.head=10;S.needs.clear();S.excluded.clear();
-  $("#headVal").textContent="10";
-  [...$("#budgets").children].forEach(x=>
-    x.setAttribute("aria-pressed",String(x.dataset.range==="all")));
+  S.min=0;S.max=BMAX;S.head=10;S.needs.clear();S.excluded.clear();
+  syncBudget();drawHead();
   [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));render();};
 $("#reset").onclick=window.__reset;
+/* 조건을 모두 풀어 등록된 전부를 보여준다 */
+$("#showAll").onclick=()=>{
+  S.min=0;S.max=BMAX;S.head=null;S.needs.clear();
+  [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));
+  syncBudget();drawHead();render();
+};
 $("#myLoc").onclick=findMe;
 $("#cards").addEventListener("click",e=>{
   const c=e.target.closest(".card");if(c)openSheet(+c.dataset.id);});
@@ -1370,7 +1398,7 @@ document.addEventListener("keydown",e=>{
     if(c) c.hidden=true;
     HEAD_OFF=true;
   }
-  syncBudget();
+  syncBudget();drawHead();
   render();
   initMap();          /* 지도를 목록 위에 바로 띄운다 */
 })();
