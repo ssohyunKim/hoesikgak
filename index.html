@@ -603,6 +603,7 @@ const SAMPLE=[
 
 /* 샘플도 시트 데이터와 같은 형태로 맞춘다 */
 SAMPLE.forEach(p=>{
+  p.fitLabel=`${p.fitMin}~${p.fitMax}명`;
   p.reviews=[];
   if(p.review) p.reviews.push({txt:p.review,bad:false,who:""});
   if(p.bad) p.reviews.push({txt:p.bad,bad:true,who:""});
@@ -667,6 +668,23 @@ function normHead(h){
     .replace(/\s+/g,"");                     // 공백
 }
 
+/* 적정인원을 한 칸으로 받는다.
+   "4명 이하" / "5~8명" / "9~12명" / "20명 이상" / "12" / "잘 모르겠음" 모두 처리 */
+function parseHead(v){
+  const s=T(v);
+  const none={min:null,max:null,cap:Infinity,label:""};
+  if(!s||/모르|미확인|해당|없음/.test(s)) return none;
+  const nums=(s.match(/\d+/g)||[]).map(Number);
+  if(!nums.length) return none;
+  if(/이상|넘/.test(s))
+    return {min:nums[0],max:99,cap:Infinity,label:`${nums[0]}명 이상`};
+  if(/이하|까지|미만/.test(s))
+    return {min:2,max:nums[0],cap:nums[0],label:`${nums[0]}명 이하`};
+  if(nums.length>=2)
+    return {min:nums[0],max:nums[1],cap:nums[1],label:`${nums[0]}~${nums[1]}명`};
+  return {min:2,max:nums[0],cap:nums[0],label:`${nums[0]}명까지`};
+}
+
 /* 평점이 숫자로 올 수도, 별 이모지로 올 수도 있다 */
 function starScore(v){
   const raw=T(v);
@@ -698,14 +716,17 @@ function rowToPlace(o,i){
     return [T(m&&m[1]||s), m&&m[2]?+m[2]:1];
   });
   const loc=T(pick(o,"위치","주소"));
+  const hc=parseHead(pick(o,"적정인원","최대인원","인원"));
   return {
     id:1000+i, name:T(o["매장명"]), branch:T(o["지점"]), cat:T(o["업종"])||"기타",
     tagline:T(o["한줄설명"]), tags:listOf(o["태그"]),
     budgetDrink:numOf(pick(o,"인당예산","인당예산_술포함"),0),
     budgetFood:numOf(o["인당예산_식사만"],0),
     menus:pairsOf(o["대표메뉴"]),
-    fitMin:numOf(o["적정인원_최소"]), fitMax:numOf(o["적정인원_최대"]),
-    capacity:numOf(o["최대수용"], numOf(o["적정인원_최대"], Infinity)),
+    fitMin:numOf(o["적정인원_최소"]) ?? hc.min,
+    fitMax:numOf(o["적정인원_최대"]) ?? hc.max,
+    fitLabel:hc.label,
+    capacity:numOf(o["최대수용"]) ?? hc.cap,
     rooms, parking:tri3(o["주차"]), noise:T(o["소음"]),
     station:T(o["지하철역"]), walk:numOf(o["도보분"],0),
     loc, isAddr:looksAddr(loc),
@@ -732,7 +753,7 @@ function mergeDupes(list){
     if(!map.has(key)){ map.set(key,p); return; }
     const base=map.get(key);
     /* 값이 있는 항목만 덮어쓴다 */
-    ["cat","tagline","budgetDrink","budgetFood","station","walk","addr","loc","isAddr",
+    ["cat","tagline","budgetDrink","budgetFood","station","walk","addr","loc","isAddr","fitLabel",
      "booking","hours","phone","tip","noise","parking","rooms",
      "fitMin","fitMax","capacity"].forEach(k=>{
       const v=p[k];
@@ -957,7 +978,7 @@ function render(){
       const parkTxt=park===null?"주차 미확인":park?"주차 가능":"주차 불가";
       const hit=fits(p);
       const fitTxt=(p.fitMin&&p.fitMax)
-        ? `<span class="${hit?"hit":""}">적정 <i>${p.fitMin}~${p.fitMax}명</i></span>`
+        ? `<span class="${hit?"hit":""}">적정 <i>${p.fitLabel||`${p.fitMin}~${p.fitMax}명`}</i></span>`
         : `<span class="off">인원 미확인</span>`;
       return `<button class="card" data-id="${p.id}">
         <div>
@@ -1015,7 +1036,7 @@ function openSheet(id){
   <div class="sect">
     <h3>인원과 공간</h3>
     <dl class="kv">
-      <dt>적정 인원</dt><dd>${p.fitMin&&p.fitMax?`<b>${p.fitMin}~${p.fitMax}명</b>${isFinite(p.capacity)?` (최대 ${p.capacity}명)`:""}`:U}</dd>
+      <dt>적정 인원</dt><dd>${p.fitMin&&p.fitMax?`<b>${p.fitLabel||`${p.fitMin}~${p.fitMax}명`}</b>`:U}</dd>
       <dt>룸</dt><dd>${room===null?U:room?p.rooms.map(r=>`${r[0]} ${r[1]}개`).join(", "):"없음"}</dd>
       <dt>소음</dt><dd>${p.noise||U}</dd>
     </dl>
