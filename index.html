@@ -614,7 +614,7 @@ let DATA=SAMPLE;
 const CAT={"고기":"#FF2E93","한식":"#B8FF29","중식":"#FF7A00","일식":"#2B5BFF",
   "양식":"#FFD400","이자카야":"#8B5CF6","곱창":"#00D9C0"};
 
-const S={budget:40000,head:12,needs:new Set(),sort:"fit",excluded:new Set()};
+const S={budget:50000,head:12,needs:new Set(),sort:"fit",excluded:new Set()};
 let HEAD_OFF=false;   /* 인원 정보가 전혀 없을 때 true */
 const $=s=>document.querySelector(s);
 const won=n=>(n||0).toLocaleString("ko-KR");
@@ -1181,8 +1181,8 @@ $("#sorts").addEventListener("click",e=>{
   S.sort=b.dataset.sort;
   [...$("#sorts").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render();});
 window.__reset=()=>{
-  S.budget=40000;S.head=12;S.needs.clear();S.excluded.clear();
-  $("#budget").value=40000;$("#budgetVal").textContent="40,000";$("#headVal").textContent="12";
+  S.budget=50000;S.head=12;S.needs.clear();S.excluded.clear();
+  $("#budget").value=50000;$("#budgetVal").textContent="40,000";$("#headVal").textContent="12";
   [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));render();};
 $("#reset").onclick=window.__reset;
 $("#cards").addEventListener("click",e=>{
