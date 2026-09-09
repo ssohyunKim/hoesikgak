@@ -336,6 +336,13 @@ canvas{max-width:100%;height:auto}
 .locbtn[data-on=true]{background:var(--pink);color:#fff}
 .mk-me{background:var(--pink);color:#fff;display:block;border-color:var(--ink)}
 .cfacts .dist{background:var(--blue);color:#fff;border-color:var(--ink)}
+
+/* ── 인증 배지 ───────────────────────────── */
+.ver{background:var(--lime)!important;border-color:var(--ink)!important;
+  transform:rotate(-1.5deg)}
+.ver::before{content:"\2713";font-weight:800;margin-right:4px}
+.ver-bar{margin-top:10px;background:var(--lime);border:var(--bd);padding:8px 11px;
+  font-size:12px;font-weight:800;line-height:1.6}
 </style>
 </head>
 <body>
@@ -1058,7 +1065,9 @@ function render(){
               :(p.loc&&!p.isAddr?`<span>${p.loc}</span>`:"")}
             ${p.noise?`<span>${p.noise}</span>`:""}
             ${myDist(p)!==null?`<span class="dist">${fmtDist(myDist(p))}</span>`:""}
-            ${p.verified?"":`<span class="unver">쩝쩝박사 검증 전</span>`}
+            ${p.verified
+              ?`<span class="ver">쩝쩝박사 인증</span>`
+              :`<span class="unver">검증 전</span>`}
           </div>
         </div>
         <div class="cright">
@@ -1083,7 +1092,9 @@ function openSheet(id){
     <button class="x" id="closeSheet" aria-label="닫기">×</button>
     <h2>${p.name}${p.branch?" "+p.branch:""}</h2>
     <div class="sub">${p.cat}${p.tags.length?" · "+p.tags.slice(0,3).join(", "):""}</div>
-    ${p.verified?"":`<div class="unver-bar">쩝쩝박사 검증 전입니다. 팀원이 등록한 정보라 확인이 필요할 수 있습니다.</div>`}
+    ${p.verified
+      ?`<div class="ver-bar">쩝쩝박사 인증 완료 — 직접 먹어보고 확인한 곳이야</div>`
+      :`<div class="unver-bar">아직 검증 전이야. 팀원이 올린 정보라 확인이 필요할 수 있어.</div>`}
   </div>
   <div class="sbar">
     ${p.phone?`<a href="tel:${p.phone}">전화 걸기</a>`:""}
