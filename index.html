@@ -449,7 +449,7 @@ canvas{max-width:100%;height:auto}
    ═══════════════════════════════════════════════════ */
 const CONFIG = {
   FORM_URL:   "https://forms.gle/ytPhLie5gwtsMYHj9",   // 구글 폼 공유 링크
-  SHEET_ID:   "",        // 폼 응답 시트 주소의 /d/ 와 /edit 사이 값. 비우면 샘플 데이터
+  SHEET_ID:   "1bUq5KJ-nG5P-e7ES5xT06Yzxm7TALLIJpwFCYDgUWiM",   // 폼 응답 시트
   SHEET_NAME: "설문지 응답 시트1",   // 응답 시트 하단 탭 이름
   KAKAO_KEY:  "20002404caeec65787ea2d0c19935431",   // 카카오 JavaScript 키
   OFFICE: {
@@ -657,6 +657,25 @@ function tri3(v){
   return null;
 }
 const VERIFY=["o","y","yes","완료","검증","검증완료","확인","true","1","v"];
+
+/* 폼 질문 제목이 그대로 열 이름이 되므로 앞 번호와 괄호 설명을 떼고 공백을 지운다.
+   "3. 인당 예산 (숫자만 예: 30000)" → "인당예산" */
+function normHead(h){
+  return T(h)
+    .replace(/^[0-9０-９]+\s*[.)\]]\s*/,"")   // 앞 번호
+    .replace(/\s*[(（[].*$/,"")               // 괄호 설명
+    .replace(/\s+/g,"");                     // 공백
+}
+
+/* 평점이 숫자로 올 수도, 별 이모지로 올 수도 있다 */
+function starScore(v){
+  const raw=T(v);
+  if(!raw) return 0;
+  const n=parseFloat(raw.replace(/[^0-9.]/g,""));
+  if(!isNaN(n)&&n>0&&n<=5) return n;
+  const stars=(raw.match(/[⭐★]/g)||[]).length;
+  return stars>0&&stars<=5?stars:0;
+}
 const listOf=v=>T(v)?T(v).split(";").map(x=>x.trim()).filter(Boolean):[];
 const pairsOf=v=>listOf(v).map(x=>{const a=x.split("|");return [T(a[0]),T(a[1])];});
 const numOf=(v,d=null)=>{const n=parseFloat(T(v).replace(/[^0-9.]/g,""));return isNaN(n)?d:n;};
@@ -691,7 +710,7 @@ function rowToPlace(o,i){
     station:T(o["지하철역"]), walk:numOf(o["도보분"],0),
     loc, isAddr:looksAddr(loc),
     booking:T(o["예약"])||"", hours:T(o["영업시간"])||"",
-    phone:T(o["전화"]), score:numOf(o["평점"],0),
+    phone:T(o["전화"]), score:starScore(o["평점"]),
     verified:VERIFY.includes(T(o["검증"]).toLowerCase()),
     submittedBy:T(o["작성자"]),
     reviews:[
@@ -745,7 +764,7 @@ async function loadSheet(){
     if(!res.ok) throw new Error("HTTP "+res.status);
     const rows=parseCSV(await res.text());
     if(rows.length<2) throw new Error("행이 없습니다");
-    const head=rows[0].map(T);
+    const head=rows[0].map(normHead);
     const list=rows.slice(1).map(r=>{
       const o={};head.forEach((h,i)=>o[h]=r[i]||"");return o;
     }).filter(o=>T(o["매장명"]) && T(o["영업상태"])!=="폐업");
