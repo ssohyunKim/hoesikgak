@@ -174,14 +174,16 @@ main{padding:30px 0 0}
 .mk-office{background:var(--ink);color:var(--lime);display:block;border-color:var(--ink)}
 
 /* ── 등록 밴드 ─────────────────────────── */
-.reportband{display:grid;grid-template-columns:1fr 290px;gap:28px;background:var(--blue);
+.reportband{display:flex;flex-wrap:wrap;align-items:center;gap:24px 34px;background:var(--blue);
   border:var(--bd);box-shadow:var(--sh);padding:28px 30px;margin:44px 0 70px;color:#fff}
 .rb-text h3{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 9px;letter-spacing:-.4px}
-.rb-text > p{margin:0;font-size:14px;line-height:1.8;max-width:52ch}
+.rb-text > p{margin:0;font-size:14px;line-height:1.8}
 .fine{margin:14px 0 0;background:var(--lime);color:var(--ink);border:var(--bd);
   padding:13px 15px;font-size:12.5px;font-weight:700;line-height:1.7}
 .fine b{background:var(--ink);color:var(--lime);padding:1px 6px}
-.rb-act{display:flex;flex-direction:column;justify-content:center;gap:13px}
+.rb-text{flex:1 1 340px;min-width:0}
+.rb-act{flex:0 1 270px;min-width:210px;
+  display:flex;flex-direction:column;justify-content:center;gap:13px}
 .rb-act a{display:block;text-align:center;background:var(--pink);color:#fff;
   text-decoration:none;font-weight:800;font-size:17px;padding:15px 10px;
   border:var(--bd);box-shadow:var(--sh)}
@@ -302,7 +304,8 @@ canvas{max-width:100%;height:auto}
 @media (max-width:860px){
   .frow{grid-template-columns:1fr;gap:20px}
   .stamp{display:none}
-  .reportband{grid-template-columns:1fr;gap:20px;padding:24px}
+  .reportband{gap:20px;padding:24px}
+  .rb-act{flex:1 1 100%}
 }
 @media (max-width:560px){
   .wrap{padding:0 16px}
@@ -321,6 +324,18 @@ canvas{max-width:100%;height:auto}
 @media (prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation:none!important}
 }
+
+/* ── 내 위치 ─────────────────────────────── */
+.mapbox{position:relative}
+.locbtn{position:absolute;right:14px;bottom:14px;z-index:5;border:var(--bd);
+  background:#fff;padding:9px 14px;font-size:13px;font-weight:800;
+  box-shadow:var(--sh-sm)}
+.locbtn:hover{background:var(--pink);color:#fff;transform:translate(-1px,-1px);
+  box-shadow:4px 4px 0 var(--ink)}
+.locbtn:active{transform:translate(2px,2px);box-shadow:none}
+.locbtn[data-on=true]{background:var(--pink);color:#fff}
+.mk-me{background:var(--pink);color:#fff;display:block;border-color:var(--ink)}
+.cfacts .dist{background:var(--blue);color:#fff;border-color:var(--ink)}
 </style>
 </head>
 <body>
@@ -348,7 +363,7 @@ canvas{max-width:100%;height:auto}
     <div class="frow">
       <div class="fcell">
         <label for="budget">인당 예산</label>
-        <div class="fnum"><span id="budgetVal">40,000</span><i>원까지</i></div>
+        <div class="fnum"><span id="budgetVal">50,000</span><i>원까지</i></div>
         <input type="range" id="budget" min="12000" max="90000" step="2000" value="50000">
       </div>
       <div class="fcell" id="headCell">
@@ -382,6 +397,7 @@ canvas{max-width:100%;height:auto}
   <div class="listhead">
     <h2 id="listTitle">후보</h2>
     <div class="sorts" id="sorts">
+      <button data-sort="near" aria-pressed="false" hidden>가까운순</button>
       <button data-sort="fit" aria-pressed="true">추천순</button>
       <button data-sort="cheap" aria-pressed="false">저가순</button>
       <button data-sort="score" aria-pressed="false">평점순</button>
@@ -389,7 +405,10 @@ canvas{max-width:100%;height:auto}
   </div>
 
   <div class="mapslot" id="mapslot">
-    <div class="mapcanvas" id="mapcanvas"><p>지도 준비 중</p></div>
+    <div class="mapbox">
+      <div class="mapcanvas" id="mapcanvas"><p>지도 준비 중</p></div>
+      <button class="locbtn" id="myLoc">내 위치</button>
+    </div>
     <div class="maphint" id="mapCount">핀 누르면 상세 열려</div>
   </div>
 
@@ -907,12 +926,57 @@ function byName(p,tick){
   },opt);
 }
 
+/* ── 내 위치 ─────────────────────────────────── */
+let myPos=null;
+function distOf(a,b,c,d){
+  const t=Math.PI/180, dla=(c-a)*t, dlo=(d-b)*t;
+  const h=Math.sin(dla/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin(dlo/2)**2;
+  return 2*6371000*Math.asin(Math.sqrt(h));
+}
+const myDist=p=>(myPos&&p.lat&&p.lng)?distOf(myPos.lat,myPos.lng,p.lat,p.lng):null;
+const fmtDist=d=>d<1000?`${Math.round(d/10)*10}m`:`${(d/1000).toFixed(1)}km`;
+
+function findMe(){
+  const b=$("#myLoc");
+  if(!navigator.geolocation){ b.textContent="위치 지원 안 됨"; return; }
+  b.textContent="찾는 중";
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      myPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      b.textContent="내 위치";b.dataset.on="true";
+      const near=document.querySelector('[data-sort="near"]');
+      if(near) near.hidden=false;
+      if(mapReady){
+        map.setCenter(new kakao.maps.LatLng(myPos.lat,myPos.lng));
+        map.setLevel(4);
+      }
+      S.sort="near";
+      [...$("#sorts").children].forEach(x=>
+        x.setAttribute("aria-pressed",String(x.dataset.sort==="near")));
+      render();
+    },
+    err=>{
+      b.textContent="내 위치";
+      $("#mapCount").textContent = err.code===1
+        ? "위치 권한이 거부됐어. 주소창 왼쪽 자물쇠에서 허용해줘."
+        : "위치를 못 찾았어. 잠시 뒤 다시 눌러줘. (https 주소에서만 동작해)";
+    },
+    {enableHighAccuracy:true,timeout:8000,maximumAge:60000}
+  );
+}
+
 function drawMarkers(){
   if(!mapReady) return;
   overlays.forEach(o=>o.setMap(null));overlays=[];
   const list=filtered().filter(p=>p.lat&&p.lng);
   const bounds=new kakao.maps.LatLngBounds();
   bounds.extend(new kakao.maps.LatLng(CONFIG.OFFICE.lat,CONFIG.OFFICE.lng));
+  if(myPos){
+    const mp=new kakao.maps.LatLng(myPos.lat,myPos.lng);
+    overlays.push(new kakao.maps.CustomOverlay({map,position:mp,
+      content:`<div class="mk mk-me">내 위치</div>`,yAnchor:1}));
+    bounds.extend(mp);
+  }
   list.forEach(p=>{
     const pos=new kakao.maps.LatLng(p.lat,p.lng);
     const el=document.createElement("div");
@@ -929,7 +993,7 @@ function drawMarkers(){
     ? `후보 ${list.length}곳을 표시했습니다. 핀을 누르면 상세가 열립니다.`
       +(miss?` 위치를 못 찾은 ${miss}곳은 목록에서 확인하세요.`:"")
     : "표시할 후보가 없습니다. 조건을 넓혀보세요.";
-  if(list.length) map.setBounds(bounds,40,40,40,40);
+  if(list.length&&!myPos) map.setBounds(bounds,40,40,40,40);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -955,7 +1019,9 @@ function fitScore(p){
 }
 function filtered(){
   const l=DATA.filter(matches);
-  if(S.sort==="cheap") l.sort((a,b)=>a.budgetDrink-b.budgetDrink);
+  if(S.sort==="near"&&myPos)
+    l.sort((a,b)=>(myDist(a)??Infinity)-(myDist(b)??Infinity));
+  else if(S.sort==="cheap") l.sort((a,b)=>a.budgetDrink-b.budgetDrink);
   else if(S.sort==="score") l.sort((a,b)=>b.score-a.score);
   else l.sort((a,b)=>fitScore(b)-fitScore(a));
   return l;
@@ -991,6 +1057,7 @@ function render(){
             ${p.station?`<span>${p.station.split(" ")[0]}${p.walk?` 도보 ${p.walk}분`:""}</span>`
               :(p.loc&&!p.isAddr?`<span>${p.loc}</span>`:"")}
             ${p.noise?`<span>${p.noise}</span>`:""}
+            ${myDist(p)!==null?`<span class="dist">${fmtDist(myDist(p))}</span>`:""}
             ${p.verified?"":`<span class="unver">쩝쩝박사 검증 전</span>`}
           </div>
         </div>
@@ -1203,9 +1270,10 @@ $("#sorts").addEventListener("click",e=>{
   [...$("#sorts").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render();});
 window.__reset=()=>{
   S.budget=50000;S.head=12;S.needs.clear();S.excluded.clear();
-  $("#budget").value=50000;$("#budgetVal").textContent="40,000";$("#headVal").textContent="12";
+  $("#budget").value=50000;$("#budgetVal").textContent="50,000";$("#headVal").textContent="12";
   [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));render();};
 $("#reset").onclick=window.__reset;
+$("#myLoc").onclick=findMe;
 $("#cards").addEventListener("click",e=>{
   const c=e.target.closest(".card");if(c)openSheet(+c.dataset.id);});
 $("#scrim").onclick=closeSheet;
