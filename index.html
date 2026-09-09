@@ -88,7 +88,20 @@ header .wrap{display:flex;align-items:center;gap:12px;height:70px}
   font-weight:700;box-shadow:var(--sh-sm)}
 .chip:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
 .chip[aria-pressed=true]{background:var(--pink);color:#fff;transform:rotate(-2deg)}
-#budgets .chip{padding:8px 12px}
+#budgets .chip{padding:7px 11px;font-size:12.5px}
+.fnum#budgetVal{margin-top:11px;font-size:22px}
+.dual{position:relative;height:34px;margin-top:6px}
+.dtrack{position:absolute;top:12px;left:0;right:0;height:10px;background:#fff;
+  border:var(--bd)}
+.dfill{position:absolute;top:0;bottom:0;background:var(--lime)}
+.dual input[type=range]{position:absolute;top:0;left:0;width:100%;height:34px;margin:0;
+  -webkit-appearance:none;appearance:none;background:none;pointer-events:none}
+.dual input[type=range]::-webkit-slider-runnable-track{height:34px;background:none;border:none}
+.dual input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;
+  width:22px;height:22px;background:var(--pink);border:var(--bd);cursor:grab;margin-top:6px}
+.dual input[type=range]::-moz-range-track{height:34px;background:none;border:none}
+.dual input[type=range]::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;
+  background:var(--pink);border:var(--bd);cursor:grab}
 #budgets .chip[aria-pressed=true]{transform:none;box-shadow:var(--sh-sm)}
 .fbottom{display:flex;align-items:center;gap:10px;margin-top:20px;padding-top:16px;
   border-top:var(--bd);flex-wrap:wrap}
@@ -364,11 +377,19 @@ canvas{max-width:100%;height:auto}
       <div class="fcell">
         <label>인당 예산</label>
         <div class="chips" id="budgets">
-          <button class="chip" data-range="all" aria-pressed="true">전체</button>
-          <button class="chip" data-range="u3" aria-pressed="false">3만 이하</button>
-          <button class="chip" data-range="3to5" aria-pressed="false">3~5만</button>
-          <button class="chip" data-range="5to10" aria-pressed="false">5~10만</button>
-          <button class="chip" data-range="o10" aria-pressed="false">10만 이상</button>
+          <button class="chip" data-min="0" data-max="150000" aria-pressed="true">전체</button>
+          <button class="chip" data-min="0" data-max="30000" aria-pressed="false">3만 이하</button>
+          <button class="chip" data-min="30000" data-max="50000" aria-pressed="false">3~5만</button>
+          <button class="chip" data-min="50000" data-max="100000" aria-pressed="false">5~10만</button>
+          <button class="chip" data-min="100000" data-max="150000" aria-pressed="false">10만 이상</button>
+        </div>
+        <div class="fnum" id="budgetVal">전체</div>
+        <div class="dual">
+          <div class="dtrack"><div class="dfill" id="dfill"></div></div>
+          <input type="range" id="bmin" min="0" max="150000" step="5000" value="0"
+                 aria-label="예산 최소">
+          <input type="range" id="bmax" min="0" max="150000" step="5000" value="150000"
+                 aria-label="예산 최대">
         </div>
       </div>
       <div class="fcell" id="headCell">
@@ -639,14 +660,16 @@ let DATA=SAMPLE;
 const CAT={"고기":"#FF2E93","한식":"#B8FF29","중식":"#FF7A00","일식":"#2B5BFF",
   "양식":"#FFD400","이자카야":"#8B5CF6","곱창":"#00D9C0"};
 
-const RANGES={
-  all:  {label:"전체",      min:0,      max:Infinity},
-  u3:   {label:"3만원 이하", min:0,      max:30000},
-  "3to5":{label:"3~5만원",  min:30001,  max:50000},
-  "5to10":{label:"5~10만원",min:50001,  max:100000},
-  o10:  {label:"10만원 이상",min:100001, max:Infinity}
-};
-const S={range:"all",head:10,needs:new Set(),sort:"fit",excluded:new Set()};
+const BMAX=150000;          /* 슬라이더 오른쪽 끝. 여기 두면 상한 없음 */
+const S={min:0,max:BMAX,head:10,needs:new Set(),sort:"fit",excluded:new Set()};
+const isAllBudget=()=>S.min<=0&&S.max>=BMAX;
+const man=n=>(n/10000).toFixed(1).replace(/\.0$/,"");
+function budgetLabel(){
+  if(isAllBudget()) return "전체";
+  if(S.min<=0) return `${man(S.max)}만원 이하`;
+  if(S.max>=BMAX) return `${man(S.min)}만원 이상`;
+  return `${man(S.min)}~${man(S.max)}만원`;
+}
 let HEAD_OFF=false;   /* 인원 정보가 전혀 없을 때 true */
 const $=s=>document.querySelector(s);
 const won=n=>(n||0).toLocaleString("ko-KR");
@@ -1012,10 +1035,10 @@ function drawMarkers(){
    필터와 목록
    ═══════════════════════════════════════════════════ */
 function matches(p){
-  if(S.range!=="all"){
-    const r=RANGES[S.range];
+  if(!isAllBudget()){
     if(!p.budgetDrink) return false;              /* 예산 미확인은 구간 조회에서 제외 */
-    if(p.budgetDrink<r.min||p.budgetDrink>r.max) return false;
+    if(p.budgetDrink<S.min) return false;
+    if(S.max<BMAX&&p.budgetDrink>S.max) return false;
   }
   if(isFinite(p.capacity)&&S.head>p.capacity) return false;
   if(S.needs.has("room")&&hasRoom(p)!==true) return false;
@@ -1046,10 +1069,10 @@ function filtered(){
 function render(){
   const list=filtered();
   $("#cnt").textContent=list.length;
-  const rl=RANGES[S.range].label;
+  const rl=budgetLabel();
   $("#listTitle").textContent=HEAD_OFF
-    ? (S.range==="all"?"전체 후보":`인당 ${rl}`)
-    : `${S.head}명 / ${S.range==="all"?"예산 전체":`인당 ${rl}`}`;
+    ? (isAllBudget()?"전체 후보":`인당 ${rl}`)
+    : `${S.head}명 / ${isAllBudget()?"예산 전체":`인당 ${rl}`}`;
   const box=$("#cards");
   if(!list.length){
     box.innerHTML=`<div class="empty">조건에 맞는 곳이 없어. 예산 구간을 넓히거나 필수 조건을 하나 빼봐.<br><br>
@@ -1276,12 +1299,29 @@ function done(i){
 /* ═══════════════════════════════════════════════════
    이벤트
    ═══════════════════════════════════════════════════ */
-$("#budgets").addEventListener("click",e=>{
-  const b=e.target.closest("[data-range]");if(!b)return;
-  S.range=b.dataset.range;
+/* 슬라이더 막대와 라벨, 그리고 일치하는 칩 표시를 갱신한다 */
+function syncBudget(){
+  $("#bmin").value=S.min;
+  $("#bmax").value=S.max;
+  const f=$("#dfill");
+  f.style.left=(S.min/BMAX*100)+"%";
+  f.style.right=(100-S.max/BMAX*100)+"%";
+  $("#budgetVal").textContent=budgetLabel();
   [...$("#budgets").children].forEach(x=>
-    x.setAttribute("aria-pressed",String(x===b)));
-  render();});
+    x.setAttribute("aria-pressed",
+      String(+x.dataset.min===S.min&&+x.dataset.max===S.max)));
+}
+$("#budgets").addEventListener("click",e=>{
+  const b=e.target.closest("[data-min]");if(!b)return;
+  S.min=+b.dataset.min; S.max=+b.dataset.max;
+  syncBudget(); render();});
+
+$("#bmin").addEventListener("input",e=>{
+  S.min=Math.min(+e.target.value, S.max-5000);
+  syncBudget(); render();});
+$("#bmax").addEventListener("input",e=>{
+  S.max=Math.max(+e.target.value, S.min+5000);
+  syncBudget(); render();});
 $("#minus").onclick=()=>{S.head=Math.max(2,S.head-1);$("#headVal").textContent=S.head;render();};
 $("#plus").onclick=()=>{S.head=Math.min(60,S.head+1);$("#headVal").textContent=S.head;render();};
 $("#needs").addEventListener("click",e=>{
@@ -1330,6 +1370,7 @@ document.addEventListener("keydown",e=>{
     if(c) c.hidden=true;
     HEAD_OFF=true;
   }
+  syncBudget();
   render();
   initMap();          /* 지도를 목록 위에 바로 띄운다 */
 })();
