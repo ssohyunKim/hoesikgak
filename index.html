@@ -157,7 +157,7 @@ main{padding:30px 0 0}
 
 /* ── 지도 ──────────────────────────────── */
 .mapslot{border:var(--bd);box-shadow:var(--sh);background:#fff;margin-bottom:16px}
-.mapcanvas{height:320px;display:flex;align-items:center;justify-content:center;
+.mapcanvas{height:440px;display:flex;align-items:center;justify-content:center;
   background:var(--paper);
   background-image:linear-gradient(#E2E7C8 1px,transparent 1px),
     linear-gradient(90deg,#E2E7C8 1px,transparent 1px);
@@ -193,13 +193,16 @@ footer{border-top:var(--bd);background:var(--ink);color:var(--lime);padding:22px
 footer .wrap{display:flex;gap:18px;flex-wrap:wrap}
 
 /* ── 상세 패널 ─────────────────────────── */
-.scrim{position:fixed;inset:0;background:rgba(11,11,11,.55);opacity:0;pointer-events:none;
-  transition:opacity .18s;z-index:40}
-.scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--paper);
-  transform:translateX(103%);transition:transform .24s cubic-bezier(.3,.85,.3,1);
-  z-index:50;overflow-y:auto;border-left:var(--bd)}
-.sheet.on{transform:none}
+/* 넓은 화면에서는 지도 오른쪽에 나란히 펼쳐진다 */
+.stage{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start;
+  transition:grid-template-columns .22s ease}
+.stage.split{grid-template-columns:minmax(0,1fr) 400px}
+.stage > main{min-width:0}
+.scrim{display:none}
+.sheet{display:none;background:var(--paper);border:var(--bd);box-shadow:var(--sh);
+  position:sticky;top:18px;max-height:calc(100vh - 36px);overflow-y:auto}
+.sheet.on{display:block;animation:slidein .22s ease}
+@keyframes slidein{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
 .stop{position:sticky;top:0;background:var(--bg);border-bottom:var(--bd);
   padding:20px 24px;z-index:2}
 .stop h2{font-family:var(--disp);font-weight:800;font-size:24px;margin:0;letter-spacing:-.7px;
@@ -286,6 +289,16 @@ canvas{max-width:100%;height:auto}
 .exl button{background:none;border:none;font-size:12px;font-weight:700;
   text-decoration:underline;padding:0;color:var(--pink)}
 
+@media (max-width:980px){
+  .stage.split{grid-template-columns:minmax(0,1fr)}
+  .scrim{display:block;position:fixed;inset:0;background:rgba(11,11,11,.55);
+    opacity:0;pointer-events:none;transition:opacity .18s;z-index:40}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;top:0;right:0;bottom:0;left:auto;width:min(520px,100%);
+    max-height:none;height:100%;border:none;border-left:var(--bd);box-shadow:none;z-index:50}
+  .sheet.on{animation:slidein2 .24s cubic-bezier(.3,.85,.3,1)}
+  @keyframes slidein2{from{transform:translateX(103%)}to{transform:none}}
+}
 @media (max-width:860px){
   .frow{grid-template-columns:1fr;gap:20px}
   .stamp{display:none}
@@ -293,6 +306,7 @@ canvas{max-width:100%;height:auto}
 }
 @media (max-width:560px){
   .wrap{padding:0 16px}
+  .mapcanvas{height:320px}
   .card{grid-template-columns:1fr;gap:14px;padding:18px}
   .cright{flex-direction:row;align-items:flex-end;text-align:left;
     border-top:2px dashed #D5D5CC;padding-top:12px}
@@ -363,7 +377,8 @@ canvas{max-width:100%;height:auto}
   </div>
 </div>
 
-<main class="wrap">
+<div class="wrap stage" id="stage">
+<main>
   <div class="listhead">
     <h2 id="listTitle">후보</h2>
     <div class="sorts" id="sorts">
@@ -397,6 +412,9 @@ canvas{max-width:100%;height:auto}
   </section>
 </main>
 
+<aside class="sheet" id="sheet" aria-hidden="true"></aside>
+</div>
+
 <footer>
   <div class="wrap">
     <span>회식각</span>
@@ -405,7 +423,6 @@ canvas{max-width:100%;height:auto}
 </footer>
 
 <div class="scrim" id="scrim"></div>
-<aside class="sheet" id="sheet" aria-hidden="true"></aside>
 
 <div class="modal" id="roulModal" role="dialog" aria-label="회식 장소 룰렛">
   <div class="roul">
@@ -1022,13 +1039,22 @@ function openSheet(id){
   $("#sheet").classList.add("on");
   $("#sheet").setAttribute("aria-hidden","false");
   $("#scrim").classList.add("on");
+  $("#stage").classList.add("split");
   $("#closeSheet").onclick=closeSheet;
   $("#sheet").scrollTop=0;
+  relayoutMap();
 }
 function closeSheet(){
   $("#sheet").classList.remove("on");
   $("#sheet").setAttribute("aria-hidden","true");
   $("#scrim").classList.remove("on");
+  $("#stage").classList.remove("split");
+  relayoutMap();
+}
+/* 지도 폭이 바뀌면 타일과 핀 위치를 다시 계산해야 한다 */
+function relayoutMap(){
+  if(!mapReady) return;
+  setTimeout(()=>{ map.relayout(); drawMarkers(); },240);
 }
 
 /* ═══════════════════════════════════════════════════
