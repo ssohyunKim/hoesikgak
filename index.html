@@ -71,21 +71,12 @@ header .wrap{display:flex;align-items:center;gap:12px;height:70px}
 /* ── 조건 패널 ─────────────────────────── */
 .panelwrap{padding-bottom:8px}
 .fpanel{background:#fff;border:var(--bd);box-shadow:var(--sh);padding:22px 24px 18px}
-.frow{display:grid;grid-template-columns:1fr 150px 1.2fr;gap:26px;align-items:start}
+.frow{display:grid;grid-template-columns:1.35fr 130px 1fr;gap:28px;align-items:start}
 .fcell label{display:block;font-weight:700;font-size:13px;margin-bottom:9px;
   background:var(--ink);color:var(--lime);padding:3px 9px 2px;width:fit-content}
 .fnum{font-family:var(--disp);font-weight:800;font-size:25px;line-height:1;letter-spacing:-.6px}
 .fnum span{background:linear-gradient(transparent 60%,#E8FF7A 60%)}
 .fnum i{font-style:normal;font-family:var(--f);font-size:13px;font-weight:700;margin-left:4px}
-input[type=range]{width:100%;margin:12px 0 0;height:20px;-webkit-appearance:none;
-  background:transparent}
-input[type=range]::-webkit-slider-runnable-track{height:10px;background:#fff;
-  border:var(--bd)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;
-  background:var(--pink);border:var(--bd);margin-top:-9px;cursor:grab}
-input[type=range]::-moz-range-track{height:10px;background:#fff;border:var(--bd)}
-input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--pink);
-  border:var(--bd);cursor:grab}
 .step{display:flex;align-items:center;gap:8px}
 .step button{width:38px;height:38px;border:var(--bd);background:#fff;font-size:19px;
   line-height:1;padding:0;box-shadow:var(--sh-sm)}
@@ -97,6 +88,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--pink
   font-weight:700;box-shadow:var(--sh-sm)}
 .chip:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
 .chip[aria-pressed=true]{background:var(--pink);color:#fff;transform:rotate(-2deg)}
+#budgets .chip{padding:8px 12px}
+#budgets .chip[aria-pressed=true]{transform:none;box-shadow:var(--sh-sm)}
 .fbottom{display:flex;align-items:center;gap:10px;margin-top:20px;padding-top:16px;
   border-top:var(--bd);flex-wrap:wrap}
 .cnt{font-size:14px;font-weight:700;margin-right:auto}
@@ -369,15 +362,20 @@ canvas{max-width:100%;height:auto}
   <div class="fpanel">
     <div class="frow">
       <div class="fcell">
-        <label for="budget">인당 예산</label>
-        <div class="fnum"><span id="budgetVal">50,000</span><i>원까지</i></div>
-        <input type="range" id="budget" min="12000" max="90000" step="2000" value="50000">
+        <label>인당 예산</label>
+        <div class="chips" id="budgets">
+          <button class="chip" data-range="all" aria-pressed="true">전체</button>
+          <button class="chip" data-range="u3" aria-pressed="false">3만 이하</button>
+          <button class="chip" data-range="3to5" aria-pressed="false">3~5만</button>
+          <button class="chip" data-range="5to10" aria-pressed="false">5~10만</button>
+          <button class="chip" data-range="o10" aria-pressed="false">10만 이상</button>
+        </div>
       </div>
       <div class="fcell" id="headCell">
         <label>인원</label>
         <div class="step">
           <button id="minus" aria-label="인원 줄이기">−</button>
-          <div class="n" id="headVal">12</div>
+          <div class="n" id="headVal">10</div>
           <button id="plus" aria-label="인원 늘리기">+</button>
           <span>명</span>
         </div>
@@ -641,7 +639,14 @@ let DATA=SAMPLE;
 const CAT={"고기":"#FF2E93","한식":"#B8FF29","중식":"#FF7A00","일식":"#2B5BFF",
   "양식":"#FFD400","이자카야":"#8B5CF6","곱창":"#00D9C0"};
 
-const S={budget:50000,head:12,needs:new Set(),sort:"fit",excluded:new Set()};
+const RANGES={
+  all:  {label:"전체",      min:0,      max:Infinity},
+  u3:   {label:"3만원 이하", min:0,      max:30000},
+  "3to5":{label:"3~5만원",  min:30001,  max:50000},
+  "5to10":{label:"5~10만원",min:50001,  max:100000},
+  o10:  {label:"10만원 이상",min:100001, max:Infinity}
+};
+const S={range:"all",head:10,needs:new Set(),sort:"fit",excluded:new Set()};
 let HEAD_OFF=false;   /* 인원 정보가 전혀 없을 때 true */
 const $=s=>document.querySelector(s);
 const won=n=>(n||0).toLocaleString("ko-KR");
@@ -1007,7 +1012,11 @@ function drawMarkers(){
    필터와 목록
    ═══════════════════════════════════════════════════ */
 function matches(p){
-  if(p.budgetDrink>S.budget) return false;
+  if(S.range!=="all"){
+    const r=RANGES[S.range];
+    if(!p.budgetDrink) return false;              /* 예산 미확인은 구간 조회에서 제외 */
+    if(p.budgetDrink<r.min||p.budgetDrink>r.max) return false;
+  }
   if(isFinite(p.capacity)&&S.head>p.capacity) return false;
   if(S.needs.has("room")&&hasRoom(p)!==true) return false;
   if(S.needs.has("parking")&&p.parking!==true) return false;
@@ -1020,7 +1029,7 @@ function fitScore(p){
   if(!p.fitMin||!p.fitMax) s-=4;                 /* 정보가 없으면 살짝 뒤로 */
   else if(fits(p)) s+=25;
   else s-=Math.min(20,Math.abs(S.head-(S.head<p.fitMin?p.fitMin:p.fitMax))*2);
-  s+=(S.budget-(p.budgetDrink||0))/4000;
+  s+=(100000-(p.budgetDrink||60000))/9000;   /* 같은 조건이면 저렴한 쪽을 살짝 위로 */
   if(hasRoom(p)===true&&S.head>=8) s+=6;
   return s;
 }
@@ -1037,12 +1046,13 @@ function filtered(){
 function render(){
   const list=filtered();
   $("#cnt").textContent=list.length;
+  const rl=RANGES[S.range].label;
   $("#listTitle").textContent=HEAD_OFF
-    ? `인당 ${won(S.budget)}원 이하`
-    : `${S.head}명 / 인당 ${won(S.budget)}원 이하`;
+    ? (S.range==="all"?"전체 후보":`인당 ${rl}`)
+    : `${S.head}명 / ${S.range==="all"?"예산 전체":`인당 ${rl}`}`;
   const box=$("#cards");
   if(!list.length){
-    box.innerHTML=`<div class="empty">조건에 맞는 곳이 없습니다. 예산 상한을 올리거나 필수 조건을 하나 빼보세요.<br><br>
+    box.innerHTML=`<div class="empty">조건에 맞는 곳이 없어. 예산 구간을 넓히거나 필수 조건을 하나 빼봐.<br><br>
       <button class="btn" onclick="window.__reset()">초기화</button></div>`;
   } else {
     box.innerHTML=list.map(p=>{
@@ -1266,8 +1276,12 @@ function done(i){
 /* ═══════════════════════════════════════════════════
    이벤트
    ═══════════════════════════════════════════════════ */
-$("#budget").addEventListener("input",e=>{
-  S.budget=+e.target.value;$("#budgetVal").textContent=won(S.budget);render();});
+$("#budgets").addEventListener("click",e=>{
+  const b=e.target.closest("[data-range]");if(!b)return;
+  S.range=b.dataset.range;
+  [...$("#budgets").children].forEach(x=>
+    x.setAttribute("aria-pressed",String(x===b)));
+  render();});
 $("#minus").onclick=()=>{S.head=Math.max(2,S.head-1);$("#headVal").textContent=S.head;render();};
 $("#plus").onclick=()=>{S.head=Math.min(60,S.head+1);$("#headVal").textContent=S.head;render();};
 $("#needs").addEventListener("click",e=>{
@@ -1280,8 +1294,10 @@ $("#sorts").addEventListener("click",e=>{
   S.sort=b.dataset.sort;
   [...$("#sorts").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render();});
 window.__reset=()=>{
-  S.budget=50000;S.head=12;S.needs.clear();S.excluded.clear();
-  $("#budget").value=50000;$("#budgetVal").textContent="50,000";$("#headVal").textContent="12";
+  S.range="all";S.head=10;S.needs.clear();S.excluded.clear();
+  $("#headVal").textContent="10";
+  [...$("#budgets").children].forEach(x=>
+    x.setAttribute("aria-pressed",String(x.dataset.range==="all")));
   [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));render();};
 $("#reset").onclick=window.__reset;
 $("#myLoc").onclick=findMe;
