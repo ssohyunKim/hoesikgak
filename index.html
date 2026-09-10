@@ -360,6 +360,17 @@ footer .wrap{align-items:center}
 }
 
 .step .n.any{font-size:16px;font-weight:700;letter-spacing:0}
+
+/* ── 사옥 선택 ───────────────────────────── */
+.offrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  padding-bottom:18px;margin-bottom:20px;border-bottom:var(--bd)}
+.offrow .olab{font-weight:700;font-size:13px;background:var(--ink);color:var(--lime);
+  padding:3px 9px 2px;margin-right:2px}
+.offbtn{border:var(--bd);background:#fff;padding:8px 16px;font-size:13.5px;
+  font-weight:800;box-shadow:var(--sh-sm)}
+.offbtn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.offbtn[aria-pressed=true]{background:var(--ink);color:var(--lime)}
+.offbtn em{font-style:normal;font-weight:700;font-size:11.5px;opacity:.75;margin-left:5px}
 </style>
 </head>
 <body>
@@ -384,6 +395,7 @@ footer .wrap{align-items:center}
 
 <div class="wrap panelwrap">
   <div class="fpanel">
+    <div class="offrow" id="offices"></div>
     <div class="frow">
       <div class="fcell">
         <label>인당 예산</label>
@@ -510,11 +522,14 @@ const CONFIG = {
   SHEET_ID:   "1bUq5KJ-nG5P-e7ES5xT06Yzxm7TALLIJpwFCYDgUWiM",   // 폼 응답 시트
   SHEET_NAME: "설문지 응답 시트1",   // 응답 시트 하단 탭 이름
   KAKAO_KEY:  "20002404caeec65787ea2d0c19935431",   // 카카오 JavaScript 키
-  OFFICE: {
-    name: "보라매사옥",
-    addr: "서울 관악구 보라매로5길 1",   // 지도 로드 시 이 주소로 좌표를 찾습니다
-    lat: 37.4993, lng: 126.9203          // 못 찾을 때 쓸 대략값 (보라매역)
-  },
+  /* 시트의 사옥 값과 key가 일치해야 합니다 */
+  OFFICES: [
+    { key:"보라매", name:"보라매사옥", addr:"서울 관악구 보라매로5길 1",
+      lat:37.4993, lng:126.9203 },
+    { key:"마포",   name:"마포사옥",   addr:"서울 마포구 마포대로 144",     // ← 주소를 넣어주세요
+      lat:37.5443, lng:126.9515 },                  //   임시 대략값 (공덕역)
+  ],
+  DEFAULT_OFFICE: "보라매",
   SEARCH_RADIUS: 6000    // 가게 이름을 찾을 반경(m). 사옥 기준, 최대 20000
 };
 
@@ -661,6 +676,7 @@ const SAMPLE=[
 
 /* 샘플도 시트 데이터와 같은 형태로 맞춘다 */
 SAMPLE.forEach(p=>{
+  p.office="보라매";
   p.fitLabel=`${p.fitMin}~${p.fitMax}명`;
   p.reviews=[];
   if(p.review) p.reviews.push({txt:p.review,bad:false,who:""});
@@ -673,8 +689,19 @@ let DATA=SAMPLE;
 const CAT={"고기":"#FF2E93","한식":"#B8FF29","중식":"#FF7A00","일식":"#2B5BFF",
   "양식":"#FFD400","이자카야":"#8B5CF6","곱창":"#00D9C0"};
 
+/* 지금 보고 있는 사옥. null 이면 전체 */
+const OFFS=CONFIG.OFFICES;
+function officeOf(key){ return OFFS.find(o=>o.key===key)||null; }
+let OFFICE=officeOf(CONFIG.DEFAULT_OFFICE)||OFFS[0];
+
 const BMAX=150000;          /* 슬라이더 오른쪽 끝. 여기 두면 상한 없음 */
-const S={min:0,max:BMAX,head:10,needs:new Set(),sort:"fit",excluded:new Set()};
+const S={min:0,max:BMAX,head:10,office:CONFIG.DEFAULT_OFFICE,
+  needs:new Set(),sort:"fit",excluded:new Set()};
+/* 주소창에 ?office=마포 가 있으면 그 사옥으로 시작한다 */
+(function(){
+  const q=new URLSearchParams(location.search).get("office");
+  if(q&&officeOf(q)){ S.office=q; OFFICE=officeOf(q); }
+})();
 const isAllBudget=()=>S.min<=0&&S.max>=BMAX;
 const man=n=>(n/10000).toFixed(1).replace(/\.0$/,"");
 function budgetLabel(){
@@ -786,6 +813,7 @@ function rowToPlace(o,i){
   const hc=parseHead(pick(o,"적정인원","최대인원","인원"));
   return {
     id:1000+i, name:T(o["매장명"]), branch:T(o["지점"]), cat:T(o["업종"])||"기타",
+    office:T(pick(o,"사옥","오피스")),
     tagline:T(o["한줄설명"]), tags:listOf(o["태그"]),
     budgetDrink:numOf(pick(o,"인당예산","인당예산_술포함"),0),
     budgetFood:numOf(o["인당예산_식사만"],0),
@@ -900,16 +928,13 @@ function initMap(){
     }
     host.innerHTML="";host.classList.add("live");
     map=new kakao.maps.Map(host,{
-      center:new kakao.maps.LatLng(CONFIG.OFFICE.lat,CONFIG.OFFICE.lng),level:5});
+      center:new kakao.maps.LatLng(OFFICE.lat,OFFICE.lng),level:5});
     map.addControl(new kakao.maps.ZoomControl(),kakao.maps.ControlPosition.RIGHT);
     places=new kakao.maps.services.Places();
     geocoder=new kakao.maps.services.Geocoder();
     /* 사옥 주소로 정확한 좌표를 먼저 잡는다 */
     findOffice(()=>{
-      const pos=new kakao.maps.LatLng(CONFIG.OFFICE.lat,CONFIG.OFFICE.lng);
-      map.setCenter(pos);
-      new kakao.maps.CustomOverlay({map,position:pos,
-        content:`<div class="mk mk-office">${CONFIG.OFFICE.name}</div>`,yAnchor:1});
+      map.setCenter(new kakao.maps.LatLng(OFFICE.lat,OFFICE.lng));
       mapReady=true;
       lookupCoords(()=>drawMarkers());
     });
@@ -918,11 +943,11 @@ function initMap(){
 
 /* 사옥 주소를 좌표로. 실패하면 설정에 적힌 대략값을 그대로 쓴다 */
 function findOffice(done){
-  const a=CONFIG.OFFICE.addr;
+  const a=OFFICE.addr;
   if(!a||!geocoder) return done();
   geocoder.addressSearch(a,(res,st)=>{
     if(st===kakao.maps.services.Status.OK&&res[0]){
-      CONFIG.OFFICE.lat=+res[0].y; CONFIG.OFFICE.lng=+res[0].x;
+      OFFICE.lat=+res[0].y; OFFICE.lng=+res[0].x;
     } else {
       console.warn("사옥 주소를 찾지 못해 대략값을 사용합니다:",a);
     }
@@ -959,7 +984,7 @@ function byName(p,tick){
     .filter(Boolean).join(" ");
   /* 이름만 있는 데이터는 동명 가게가 많으므로 사옥 주변에서 가까운 순으로 찾는다 */
   const opt={
-    location:new kakao.maps.LatLng(CONFIG.OFFICE.lat,CONFIG.OFFICE.lng),
+    location:new kakao.maps.LatLng(OFFICE.lat,OFFICE.lng),
     radius:CONFIG.SEARCH_RADIUS||20000,
     sort:kakao.maps.services.SortBy.DISTANCE
   };
@@ -998,6 +1023,16 @@ function findMe(){
         map.setCenter(new kakao.maps.LatLng(myPos.lat,myPos.lng));
         map.setLevel(4);
       }
+      /* 가장 가까운 사옥으로 자동 전환 (30km 안일 때만) */
+      if(S.office){
+        let best=null,bd=Infinity;
+        OFFS.forEach(o=>{const d=distOf(myPos.lat,myPos.lng,o.lat,o.lng);
+          if(d<bd){bd=d;best=o;}});
+        if(best&&bd<30000&&best.key!==S.office){
+          S.office=best.key;OFFICE=best;drawOffices();
+          $("#mapCount").textContent=`${best.key} 사옥이 가장 가까워서 그쪽으로 바꿨어`;
+        }
+      }
       S.sort="near";
       [...$("#sorts").children].forEach(x=>
         x.setAttribute("aria-pressed",String(x.dataset.sort==="near")));
@@ -1018,7 +1053,10 @@ function drawMarkers(){
   overlays.forEach(o=>o.setMap(null));overlays=[];
   const list=filtered().filter(p=>p.lat&&p.lng);
   const bounds=new kakao.maps.LatLngBounds();
-  bounds.extend(new kakao.maps.LatLng(CONFIG.OFFICE.lat,CONFIG.OFFICE.lng));
+  const opos=new kakao.maps.LatLng(OFFICE.lat,OFFICE.lng);
+  bounds.extend(opos);
+  overlays.push(new kakao.maps.CustomOverlay({map,position:opos,
+    content:`<div class="mk mk-office">${OFFICE.name}</div>`,yAnchor:1}));
   if(myPos){
     const mp=new kakao.maps.LatLng(myPos.lat,myPos.lng);
     overlays.push(new kakao.maps.CustomOverlay({map,position:mp,
@@ -1048,6 +1086,7 @@ function drawMarkers(){
    필터와 목록
    ═══════════════════════════════════════════════════ */
 function matches(p){
+  if(S.office && p.office!==S.office) return false;
   if(!isAllBudget()){
     if(!p.budgetDrink) return false;              /* 예산 미확인은 구간 조회에서 제외 */
     if(p.budgetDrink<S.min) return false;
@@ -1078,6 +1117,29 @@ function filtered(){
   else if(S.sort==="score") l.sort((a,b)=>b.score-a.score);
   else l.sort((a,b)=>fitScore(b)-fitScore(a));
   return l;
+}
+
+function drawOffices(){
+  const box=$("#offices");
+  const counts={};
+  DATA.forEach(p=>{ if(p.office) counts[p.office]=(counts[p.office]||0)+1; });
+  box.innerHTML=`<span class="olab">사옥</span>`+
+    OFFS.map(o=>`<button class="offbtn" data-off="${o.key}"
+      aria-pressed="${S.office===o.key}">${o.key}<em>${counts[o.key]||0}</em></button>`).join("")+
+    (S.office?"":`<span style="font-size:12.5px;font-weight:700">전체 보는 중</span>`);
+}
+
+function setOffice(key){
+  S.office=key;
+  OFFICE=key?officeOf(key):OFFICE;
+  drawOffices();
+  render();
+  if(!key||!mapReady) return;
+  /* 사옥이 바뀌면 지도 중심과 이름 검색 기준점도 함께 옮긴다 */
+  findOffice(()=>{
+    map.setCenter(new kakao.maps.LatLng(OFFICE.lat,OFFICE.lng));
+    lookupCoords(()=>drawMarkers());
+  });
 }
 
 function render(){
@@ -1359,16 +1421,22 @@ $("#sorts").addEventListener("click",e=>{
   [...$("#sorts").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render();});
 window.__reset=()=>{
   S.min=0;S.max=BMAX;S.head=10;S.needs.clear();S.excluded.clear();
-  syncBudget();drawHead();
+  S.office=CONFIG.DEFAULT_OFFICE;OFFICE=officeOf(S.office)||OFFS[0];
+  syncBudget();drawHead();drawOffices();
   [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));render();};
 $("#reset").onclick=window.__reset;
 /* 조건을 모두 풀어 등록된 전부를 보여준다 */
 $("#showAll").onclick=()=>{
-  S.min=0;S.max=BMAX;S.head=null;S.needs.clear();
+  S.min=0;S.max=BMAX;S.head=null;S.office=null;S.needs.clear();
+  drawOffices();
   [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));
   syncBudget();drawHead();render();
 };
 $("#myLoc").onclick=findMe;
+$("#offices").addEventListener("click",e=>{
+  const b=e.target.closest("[data-off]");if(!b)return;
+  setOffice(b.dataset.off);
+});
 $("#cards").addEventListener("click",e=>{
   const c=e.target.closest(".card");if(c)openSheet(+c.dataset.id);});
 $("#scrim").onclick=closeSheet;
@@ -1398,7 +1466,7 @@ document.addEventListener("keydown",e=>{
     if(c) c.hidden=true;
     HEAD_OFF=true;
   }
-  syncBudget();drawHead();
+  syncBudget();drawHead();drawOffices();
   render();
   initMap();          /* 지도를 목록 위에 바로 띄운다 */
 })();
