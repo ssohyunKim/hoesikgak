@@ -350,6 +350,27 @@ canvas{max-width:100%;height:auto}
 .ver-bar{margin-top:10px;background:var(--lime);border:var(--bd);padding:8px 11px;
   font-size:12px;font-weight:800;line-height:1.6}
 
+/* ── 비추 명단 ───────────────────────────── */
+.tabs button em{font-style:normal;font-size:12px;margin-left:6px;opacity:.55}
+.tabs button[aria-pressed=true] em{opacity:1}
+.tabs button[data-tab=no][aria-pressed=true]{background:var(--pink);color:#fff}
+.card.no{background:#FFF2F6}
+.card.no .dot{background:var(--pink)!important;border-radius:50%}
+.cfacts .nobadge{background:var(--pink);color:#fff;border-color:var(--ink)!important;
+  transform:rotate(-2deg)}
+.cfacts .warn{background:#FFD400}
+.noreason{font-size:13.5px;margin:0 0 11px;background:#fff;border:2px solid var(--pink);
+  padding:9px 12px;line-height:1.65}
+.noreason b{background:var(--pink);color:#fff;padding:1px 7px;font-size:12px;
+  font-weight:700;margin-right:6px}
+.no-bar{margin-top:10px;background:var(--pink);color:#fff;border:var(--bd);padding:8px 11px;
+  font-size:12px;font-weight:800;line-height:1.6}
+.warn-bar{margin-top:10px;background:#FFD400;border:var(--bd);padding:8px 11px;
+  font-size:12px;font-weight:800;line-height:1.6}
+.mk-no{background:#FFF2F6;border-color:var(--pink)!important}
+.mk-no b{text-decoration:line-through}
+.mk-no span{color:var(--grey)}
+
 /* ── 만든 사람 ───────────────────────────── */
 footer .wrap{align-items:center}
 .credit{margin-left:auto;display:flex;align-items:center;gap:7px;white-space:nowrap}
@@ -375,7 +396,7 @@ footer .wrap{align-items:center}
 </head>
 <body>
 
-<div class="marq"><span>못 정하면 돌려 &nbsp;·&nbsp; 룸 없는데 12명 데려가지 마 &nbsp;·&nbsp; 인당 예산 먼저 찍어 &nbsp;·&nbsp; 쩝쩝박사 검증 중 &nbsp;·&nbsp; 2차는 걸어서 3분 &nbsp;·&nbsp; 못 정하면 돌려 &nbsp;·&nbsp; 룸 없는데 12명 데려가지 마 &nbsp;·&nbsp; 인당 예산 먼저 찍어 &nbsp;·&nbsp; 쩝쩝박사 검증 중 &nbsp;·&nbsp; 2차는 걸어서 3분 &nbsp;·&nbsp;</span></div>
+<div class="marq"><span>못 정하면 돌려 &nbsp;·&nbsp; 룸 없는데 12명 데려가지 마 &nbsp;·&nbsp; 인당 예산 먼저 찍어 &nbsp;·&nbsp; 데인 집은 비추로 올려 &nbsp;·&nbsp; 쩝쩝박사 검증 중 &nbsp;·&nbsp; 2차는 걸어서 3분 &nbsp;·&nbsp; 못 정하면 돌려 &nbsp;·&nbsp; 룸 없는데 12명 데려가지 마 &nbsp;·&nbsp; 인당 예산 먼저 찍어 &nbsp;·&nbsp; 데인 집은 비추로 올려 &nbsp;·&nbsp; 쩝쩝박사 검증 중 &nbsp;·&nbsp; 2차는 걸어서 3분 &nbsp;·&nbsp;</span></div>
 
 <header>
   <div class="wrap">
@@ -419,7 +440,7 @@ footer .wrap{align-items:center}
         <label>인원</label>
         <div class="step">
           <button id="minus" aria-label="인원 줄이기">−</button>
-          <div class="n" id="headVal">10</div>
+          <div class="n" id="headVal">5</div>
           <button id="plus" aria-label="인원 늘리기">+</button>
           <span>명</span>
         </div>
@@ -434,7 +455,7 @@ footer .wrap{align-items:center}
       </div>
     </div>
     <div class="fbottom">
-      <div class="cnt">지금 조건에 <b id="cnt">0</b>곳<span id="totalWrap"></span></div>
+      <div class="cnt"><span id="cntLabel">지금 조건에</span> <b id="cnt">0</b>곳<span id="totalWrap"></span></div>
       <button class="btn" id="showAll">전체 보기</button>
       <button class="btn" id="reset">초기화</button>
       <button class="btn btn-main" id="openRoul">룰렛 돌리기</button>
@@ -445,12 +466,17 @@ footer .wrap{align-items:center}
 <div class="wrap stage" id="stage">
 <main>
   <div class="listhead">
+    <div class="tabs" id="tabs">
+      <button data-tab="rec" aria-pressed="true">추천<em id="tabRecN">0</em></button>
+      <button data-tab="no" aria-pressed="false">비추<em id="tabNoN">0</em></button>
+    </div>
     <h2 id="listTitle">후보</h2>
     <div class="sorts" id="sorts">
       <button data-sort="near" aria-pressed="false" hidden>가까운순</button>
       <button data-sort="fit" aria-pressed="true">추천순</button>
       <button data-sort="cheap" aria-pressed="false">저가순</button>
       <button data-sort="score" aria-pressed="false">평점순</button>
+      <button data-sort="worst" aria-pressed="false" hidden>최악순</button>
     </div>
   </div>
 
@@ -466,17 +492,18 @@ footer .wrap{align-items:center}
 
   <section class="reportband">
     <div class="rb-text">
-      <h3>다녀왔으면 남기고 가</h3>
+      <h3>좋았든 데였든 남기고 가</h3>
       <p>여덟 칸이면 끝난다. 가게 이름, 업종, 인당 얼마 나왔는지,
         룸, 주차, 시끄러운지, 별점, 그리고 다음 사람이 알아야 할 한마디.
         30초 걸린다.</p>
-      <p class="fine">올리면 바로 목록에 뜬다. <b>쩝쩝박사</b>가 직접 먹어보고
-        확인한 곳에는 검증 도장이 붙는다. 박사님도 배가 하나라 시간이 좀 걸린다.</p>
+      <p class="fine">갈림길은 별점 하나다. <b>0점</b>은 별점도 아깝다, <b>1점</b>은 비추.
+        둘 다 비추 명단으로 가고 룰렛에서 아예 빠지니까 아무도 안 걸린다.
+        <b>쩝쩝박사</b>가 직접 먹어보고 확인한 곳에는 검증 도장이 붙는다.</p>
     </div>
     <div class="rb-act">
-      <a id="reportBtn" href="#" target="_blank" rel="noopener">맛집 등록하기</a>
+      <a id="reportBtn" href="#" target="_blank" rel="noopener">맛집 · 비추 등록하기</a>
       <p class="rb-note">룸이랑 주차 모르면 "잘 모르겠음" 고르면 돼.
-        미확인으로 뜨고, 그 조건 켠 사람한테는 안 보인다.</p>
+        별점을 1점 이하로 줄 거면 아쉬운 점 한 줄은 꼭 써줘. 그게 제일 중요하다.</p>
     </div>
   </section>
 </main>
@@ -532,6 +559,20 @@ const CONFIG = {
   DEFAULT_OFFICE: "보라매",
   SEARCH_RADIUS: 6000    // 가게 이름을 찾을 반경(m). 사옥 기준, 최대 20000
 };
+
+/* ═══════════════════════════════════════════════════
+   추천이냐 비추냐는 별점 하나로 가른다. 폼에 칸을 더 만들 필요가 없다.
+     0점 = 별점도 아깝다, 1점 = 비추  →  비추 명단
+     2점 이상                        →  회식 후보
+   평점을 아예 안 매긴 곳은 후보로 둔다. 0점과 빈 칸은 다른 뜻이다.
+   ═══════════════════════════════════════════════════ */
+const BAD_SCORE=1;
+const recOf=p=>!(p.rated&&p.score<=BAD_SCORE);
+const isZero=p=>p.rated&&p.score<=0;
+/* 카드와 상세에서 같은 문구를 쓴다 */
+const scoreLabel=p=>!p.rated?"평점 없음"
+  :isZero(p)?"별점도 아깝다"
+  :`${p.score.toFixed(1)} / 5`;
 
 /* ═══════════════════════════════════════════════════
    폴백 샘플 데이터
@@ -671,7 +712,35 @@ const SAMPLE=[
  bad:"환기가 약하고 시끄러워서 대화가 거의 안 됩니다.",
  tip:"2시간 제한이 있어서 1차만 하고 나오는 구조로 잡아야 합니다.",
  second:[["호프 백구","도보 2분"]],
- lat:37.5620,lng:126.9960,addr:"서울 중구 퇴계로 00"}
+ lat:37.5620,lng:126.9960,addr:"서울 중구 퇴계로 00"},
+
+{id:11,name:"왕대박 조개구이",branch:"을지로",cat:"해산물",
+ tagline:"사진이랑 다르게 나온다. 단체로 갔다가 분위기만 식었다",
+ tags:["조개구이","비추"],budgetDrink:36000,budgetFood:28000,
+ menus:[["모둠조개 大","58,000"]],
+ fitMin:4,fitMax:10,capacity:30,rooms:[],
+ parking:false,noise:"시끄러움",station:"을지로4가역 5번 출구",walk:6,
+ booking:"예약 가능",hours:"매일 16:00~24:00",
+ phone:"02-000-0010",score:0,
+ review:"",
+ bad:"12명 예약하고 갔는데 조개 양이 확 줄어서 나왔습니다. 항의하니 원래 그렇다고 합니다.",
+ tip:"굳이 가야 한다면 인원수대로 주문 들어갔는지 나오자마자 확인하세요.",
+ second:[],
+ lat:37.5678,lng:126.9992,addr:"서울 중구 을지로 00"},
+
+{id:12,name:"미소야 참치",branch:"충무로",cat:"일식",
+ tagline:"인당 6만원 받고 냉동 티가 심하게 납니다",
+ tags:["참치","비추","가격"],budgetDrink:62000,budgetFood:50000,
+ menus:[["참치 특선","55,000"]],
+ fitMin:2,fitMax:8,capacity:16,rooms:[["6인룸",1]],
+ parking:null,noise:"조용",station:"충무로역 2번 출구",walk:4,
+ booking:"예약 필수",hours:"평일 18:00~23:00, 일요일 휴무",
+ phone:"02-000-0011",score:1,
+ review:"",
+ bad:"접대로 갔다가 분위기가 어색해졌습니다. 이 가격이면 다른 데가 낫습니다.",
+ tip:"같은 예산이면 스시 오모리 쪽이 낫다는 의견이 많습니다.",
+ second:[],
+ lat:37.5612,lng:126.9948,addr:"서울 중구 퇴계로 00"}
 ];
 
 /* 샘플도 시트 데이터와 같은 형태로 맞춘다 */
@@ -681,13 +750,17 @@ SAMPLE.forEach(p=>{
   p.reviews=[];
   if(p.review) p.reviews.push({txt:p.review,bad:false,who:""});
   if(p.bad) p.reviews.push({txt:p.bad,bad:true,who:""});
+  p.rated=true;
+  p.rec=recOf(p);
+  p.recYes=p.rec?1:0; p.recNo=p.rec?0:1;
+  p.noReason=p.rec?"":(p.bad||"");
   p.verified=true; p.visits=1;
 });
 
 let DATA=SAMPLE;
 
 const CAT={"고기":"#FF2E93","한식":"#B8FF29","중식":"#FF7A00","일식":"#2B5BFF",
-  "양식":"#FFD400","이자카야":"#8B5CF6","곱창":"#00D9C0"};
+  "양식":"#FFD400","이자카야":"#8B5CF6","곱창":"#00D9C0","해산물":"#4ADEDE"};
 
 /* 지금 보고 있는 사옥. null 이면 전체 */
 const OFFS=CONFIG.OFFICES;
@@ -695,8 +768,9 @@ function officeOf(key){ return OFFS.find(o=>o.key===key)||null; }
 let OFFICE=officeOf(CONFIG.DEFAULT_OFFICE)||OFFS[0];
 
 const BMAX=150000;          /* 슬라이더 오른쪽 끝. 여기 두면 상한 없음 */
-const S={min:0,max:BMAX,head:10,office:CONFIG.DEFAULT_OFFICE,
-  needs:new Set(),sort:"fit",excluded:new Set()};
+const DEF_HEAD=5;           /* 처음 열었을 때의 인원. 등록된 곳 대부분이 5~8명이다 */
+const S={min:0,max:BMAX,head:DEF_HEAD,office:CONFIG.DEFAULT_OFFICE,
+  needs:new Set(),sort:"fit",tab:"rec",excluded:new Set()};
 /* 주소창에 ?office=마포 가 있으면 그 사옥으로 시작한다 */
 (function(){
   const q=new URLSearchParams(location.search).get("office");
@@ -727,6 +801,10 @@ const mapQuery=p=>encodeURIComponent(p.addr||`${p.name} ${p.station||""}`);
 
 /* ═══════════════════════════════════════════════════
    구글 시트 읽기 — 25개 열, 필수는 8개
+
+   비추는 별점으로만 가립니다. 0점과 1점이 비추 명단으로 갑니다.
+   폼에 질문을 더 만들 필요가 없습니다.
+   비추 이유는 "후기(아쉬운점)" 칸을 그대로 씁니다.
    ═══════════════════════════════════════════════════ */
 function parseCSV(text){
   const rows=[];let row=[],cell="",q=false;
@@ -752,6 +830,7 @@ function tri3(v){
   return null;
 }
 const VERIFY=["o","y","yes","완료","검증","검증완료","확인","true","1","v"];
+
 
 /* 폼 질문 제목이 그대로 열 이름이 되므로 앞 번호와 괄호 설명을 떼고 공백을 지운다.
    "3. 인당 예산 (숫자만 예: 30000)" → "인당예산" */
@@ -779,14 +858,19 @@ function parseHead(v){
   return {min:2,max:nums[0],cap:nums[0],label:`${nums[0]}명까지`};
 }
 
-/* 평점이 숫자로 올 수도, 별 이모지로 올 수도 있다 */
+/* 평점이 숫자로 올 수도, 별 이모지로 올 수도 있다.
+   안 매긴 칸은 null, "0"은 0점(별점도 아깝다)으로 돌려준다 */
 function starScore(v){
   const raw=T(v);
-  if(!raw) return 0;
-  const n=parseFloat(raw.replace(/[^0-9.]/g,""));
-  if(!isNaN(n)&&n>0&&n<=5) return n;
+  if(!raw) return null;
+  if(/아깝/.test(raw)) return 0;              /* "별점도 아깝다" 같은 보기 */
+  const d=raw.replace(/[^0-9.]/g,"");
+  if(d){
+    const n=parseFloat(d);
+    if(!isNaN(n)&&n>=0&&n<=5) return n;
+  }
   const stars=(raw.match(/[⭐★]/g)||[]).length;
-  return stars>0&&stars<=5?stars:0;
+  return stars>0&&stars<=5?stars:null;
 }
 const listOf=v=>T(v)?T(v).split(";").map(x=>x.trim()).filter(Boolean):[];
 const pairsOf=v=>listOf(v).map(x=>{const a=x.split("|");return [T(a[0]),T(a[1])];});
@@ -811,6 +895,10 @@ function rowToPlace(o,i){
   });
   const loc=T(pick(o,"위치","주소"));
   const hc=parseHead(pick(o,"적정인원","최대인원","인원"));
+  const sc=starScore(o["평점"]);
+  const rated=sc!==null, score=sc||0;
+  const rec=recOf({rated,score});
+  const noReason=T(pick(o,"아쉬운점","후기"));
   return {
     id:1000+i, name:T(o["매장명"]), branch:T(o["지점"]), cat:T(o["업종"])||"기타",
     office:T(pick(o,"사옥","오피스")),
@@ -826,12 +914,13 @@ function rowToPlace(o,i){
     station:T(o["지하철역"]), walk:numOf(o["도보분"],0),
     loc, isAddr:looksAddr(loc),
     booking:T(o["예약"])||"", hours:T(o["영업시간"])||"",
-    phone:T(o["전화"]), score:starScore(o["평점"]),
+    phone:T(o["전화"]), score, rated,
+    rec, recYes:rec?1:0, recNo:rec?0:1, noReason:rec?"":noReason,
     verified:VERIFY.includes(T(o["검증"]).toLowerCase()),
     submittedBy:T(o["작성자"]),
     reviews:[
-      ...(T(o["후기"])?[{txt:T(o["후기"]),bad:false,who:T(o["작성자"])}]:[]),
-      ...(T(o["아쉬운점"])?[{txt:T(o["아쉬운점"]),bad:true,who:T(o["작성자"])}]:[])
+      ...(T(o["후기"])?[{txt:T(o["후기"]),bad:!rec,who:T(o["작성자"])}]:[]),
+      ...(T(pick(o,"아쉬운점","비추이유"))?[{txt:T(pick(o,"아쉬운점","비추이유")),bad:true,who:T(o["작성자"])}]:[])
     ],
     visits:1,
     tip:T(o["실전팁"]), second:pairsOf(o["2차후보"]),
@@ -862,11 +951,18 @@ function mergeDupes(list){
     base.reviews=base.reviews.concat(p.reviews);
     base.verified=base.verified||p.verified;
     base.visits+=1;
+    base.recYes+=p.recYes; base.recNo+=p.recNo;
+    if(p.noReason) base.noReason=base.noReason||p.noReason;
     /* 평점은 등록된 값들의 평균 */
-    if(p.score){
-      base._scores=(base._scores||(base.score?[base.score]:[])).concat(p.score);
+    if(p.rated){
+      base._scores=(base._scores||(base.rated?[base.score]:[])).concat(p.score);
       base.score=base._scores.reduce((a,b)=>a+b,0)/base._scores.length;
+      base.rated=true;
     }
+    /* 여러 명이 올렸으면 평균 별점으로 다시 가른다.
+       비추 제보가 섞여 있어도 평균이 올라가면 후보로 남고, 카드에 경고만 붙는다 */
+    base.rec=recOf(base);
+    if(base.rec) base.noReason="";
   });
   return [...map.values()];
 }
@@ -1066,19 +1162,21 @@ function drawMarkers(){
   list.forEach(p=>{
     const pos=new kakao.maps.LatLng(p.lat,p.lng);
     const el=document.createElement("div");
-    el.className="mk";
+    el.className="mk"+(p.rec===false?" mk-no":"");
     el.style.setProperty("--mkc",CAT[p.cat]||"#0A8C76");
-    el.innerHTML=`<b>${p.name}</b><span>${won(p.budgetDrink)}</span>`;
+    el.innerHTML=`<b>${p.name}</b><span>${p.rec===false?"비추":won(p.budgetDrink)}</span>`;
     el.onclick=()=>openSheet(p.id);
     overlays.push(new kakao.maps.CustomOverlay({map,position:pos,content:el,
       yAnchor:1.1,clickable:true}));
     bounds.extend(pos);
   });
   const miss=filtered().length-list.length;
+  const noTab=S.tab==="no";
   $("#mapCount").textContent=list.length
-    ? `후보 ${list.length}곳을 표시했습니다. 핀을 누르면 상세가 열립니다.`
+    ? `${noTab?"비추":"후보"} ${list.length}곳을 표시했습니다. 핀을 누르면 상세가 열립니다.`
       +(miss?` 위치를 못 찾은 ${miss}곳은 목록에서 확인하세요.`:"")
-    : "표시할 후보가 없습니다. 조건을 넓혀보세요.";
+    : (noTab?"비추로 올라온 곳이 없습니다."
+            :"표시할 후보가 없습니다. 조건을 넓혀보세요.");
   if(list.length&&!myPos) map.setBounds(bounds,40,40,40,40);
 }
 
@@ -1087,6 +1185,9 @@ function drawMarkers(){
    ═══════════════════════════════════════════════════ */
 function matches(p){
   if(S.office && p.office!==S.office) return false;
+  /* 비추 명단은 피하려고 보는 목록이라 예산·인원·필수조건을 걸지 않는다 */
+  if(S.tab==="no") return p.rec===false;
+  if(p.rec===false) return false;
   if(!isAllBudget()){
     if(!p.budgetDrink) return false;              /* 예산 미확인은 구간 조회에서 제외 */
     if(p.budgetDrink<S.min) return false;
@@ -1114,19 +1215,60 @@ function filtered(){
   if(S.sort==="near"&&myPos)
     l.sort((a,b)=>(myDist(a)??Infinity)-(myDist(b)??Infinity));
   else if(S.sort==="cheap") l.sort((a,b)=>a.budgetDrink-b.budgetDrink);
-  else if(S.sort==="score") l.sort((a,b)=>b.score-a.score);
+  else if(S.sort==="score") l.sort((a,b)=>(b.rated?b.score:-1)-(a.rated?a.score:-1));
+  else if(S.sort==="worst"||S.tab==="no")
+    l.sort((a,b)=>(a.rated?a.score:5)-(b.rated?b.score:5)||b.recNo-a.recNo);
   else l.sort((a,b)=>fitScore(b)-fitScore(a));
   return l;
+}
+/* 룰렛과 개수 표시는 탭과 무관하게 추천 목록만 본다 */
+function recList(){
+  const t=S.tab, s=S.sort;
+  S.tab="rec"; if(s==="worst") S.sort="fit";
+  const l=filtered(); S.tab=t; S.sort=s; return l;
 }
 
 function drawOffices(){
   const box=$("#offices");
   const counts={};
-  DATA.forEach(p=>{ if(p.office) counts[p.office]=(counts[p.office]||0)+1; });
+  DATA.forEach(p=>{
+    if(!p.office) return;
+    if(S.tab==="no" ? p.rec!==false : p.rec===false) return;
+    counts[p.office]=(counts[p.office]||0)+1;
+  });
   box.innerHTML=`<span class="olab">사옥</span>`+
     OFFS.map(o=>`<button class="offbtn" data-off="${o.key}"
       aria-pressed="${S.office===o.key}">${o.key}<em>${counts[o.key]||0}</em></button>`).join("")+
     (S.office?"":`<span style="font-size:12.5px;font-weight:700">전체 보는 중</span>`);
+}
+
+/* 탭 개수와 눌린 상태, 그리고 탭에 맞는 정렬 버튼만 남긴다 */
+function drawTabs(){
+  const inOff=p=>!S.office||p.office===S.office;
+  const rec=DATA.filter(p=>p.name&&inOff(p)&&p.rec!==false).length;
+  const no=DATA.filter(p=>p.name&&inOff(p)&&p.rec===false).length;
+  $("#tabRecN").textContent=rec;
+  $("#tabNoN").textContent=no;
+  [...$("#tabs").children].forEach(b=>
+    b.setAttribute("aria-pressed",String(b.dataset.tab===S.tab)));
+  const isNo=S.tab==="no";
+  const show=(k,on)=>{const b=document.querySelector(`[data-sort="${k}"]`);
+    if(b) b.hidden=!on;};
+  show("fit",!isNo); show("cheap",!isNo);
+  show("score",!isNo&&DATA.some(p=>p.rated));
+  show("worst",isNo);
+  show("near",!!myPos);
+  [...$("#sorts").children].forEach(x=>
+    x.setAttribute("aria-pressed",String(x.dataset.sort===S.sort)));
+}
+function setTab(tab){
+  if(S.tab===tab) return;
+  S.tab=tab;
+  /* 탭마다 기본 정렬이 다르다. 내 위치를 잡아둔 상태면 가까운순을 유지한다 */
+  if(S.sort!=="near") S.sort = tab==="no" ? "worst" : "fit";
+  closeSheet();
+  drawOffices();
+  render();
 }
 
 function setOffice(key){
@@ -1144,31 +1286,44 @@ function setOffice(key){
 
 function render(){
   const list=filtered();
+  const no=S.tab==="no";
+  drawTabs();
   $("#cnt").textContent=list.length;
-  const total=DATA.filter(p=>p.name).length;
+  $("#cntLabel").textContent = no ? "비추로 올라온 곳" : "지금 조건에";
+  const total=DATA.filter(p=>p.name&&(no?p.rec===false:p.rec!==false)).length;
   const tw=$("#totalWrap");
   if(tw) tw.textContent = list.length<total ? ` (전체 ${total}곳)` : "";
   const rl=budgetLabel();
   const hl = (HEAD_OFF||!S.head) ? "인원 무관" : `${S.head}명`;
-  $("#listTitle").textContent=`${hl} / ${isAllBudget()?"예산 전체":`인당 ${rl}`}`;
+  $("#listTitle").textContent = no
+    ? "여긴 다시 가지 말자"
+    : `${hl} / ${isAllBudget()?"예산 전체":`인당 ${rl}`}`;
   const box=$("#cards");
   if(!list.length){
-    box.innerHTML=`<div class="empty">조건에 맞는 곳이 없어. 예산 구간을 넓히거나 필수 조건을 하나 빼봐.<br><br>
-      <button class="btn" onclick="window.__reset()">초기화</button></div>`;
+    box.innerHTML = no
+      ? `<div class="empty">아직 비추로 올라온 곳이 없어. 다행이네.<br><br>
+         데인 데가 있으면 별점 1점(또는 0점)으로 올려줘. 여기로 온다.</div>`
+      : `<div class="empty">조건에 맞는 곳이 없어. 예산 구간을 넓히거나 필수 조건을 하나 빼봐.<br><br>
+         <button class="btn" onclick="window.__reset()">초기화</button></div>`;
   } else {
     box.innerHTML=list.map(p=>{
       const room=hasRoom(p),park=p.parking;
       const roomTxt=room===null?"룸 미확인":room?`룸 ${p.rooms.map(r=>r[0]).join(" ")}`:"룸 없음";
       const parkTxt=park===null?"주차 미확인":park?"주차 가능":"주차 불가";
       const hit=fits(p);
+      const bad=p.rec===false;
       const fitTxt=(p.fitMin&&p.fitMax)
-        ? `<span class="${hit?"hit":""}">적정 <i>${p.fitLabel||`${p.fitMin}~${p.fitMax}명`}</i></span>`
+        ? `<span class="${hit&&!bad?"hit":""}">적정 <i>${p.fitLabel||`${p.fitMin}~${p.fitMax}명`}</i></span>`
         : `<span class="off">인원 미확인</span>`;
-      return `<button class="card" data-id="${p.id}">
+      return `<button class="card${bad?" no":""}" data-id="${p.id}">
         <div>
           <h3 class="cname"><span class="dot" style="background:${CAT[p.cat]||"#9AA29B"}"></span>${p.name}<span>${p.branch?p.branch+" ":""}${p.cat}</span></h3>
-          ${p.tagline?`<p class="ctag">${p.tagline}</p>`:""}
+          ${bad&&p.noReason
+            ?`<p class="noreason"><b>비추</b>${p.noReason}</p>`
+            :(p.tagline?`<p class="ctag">${p.tagline}</p>`:"")}
           <div class="cfacts">
+            ${bad?`<span class="nobadge">${isZero(p)?"별점도 아깝다":"비추"}${p.recNo>1?" "+p.recNo+"명":""}</span>`:""}
+            ${!bad&&p.recNo>0?`<span class="warn">비추 제보 ${p.recNo}</span>`:""}
             ${fitTxt}
             <span class="${room===null?"off":""}">${roomTxt}</span>
             <span class="${park===null?"off":""}">${parkTxt}</span>
@@ -1176,14 +1331,14 @@ function render(){
               :(p.loc&&!p.isAddr?`<span>${p.loc}</span>`:"")}
             ${p.noise?`<span>${p.noise}</span>`:""}
             ${myDist(p)!==null?`<span class="dist">${fmtDist(myDist(p))}</span>`:""}
-            ${p.verified
+            ${bad?"":(p.verified
               ?`<span class="ver">쩝쩝박사 인증</span>`
-              :`<span class="unver">검증 전</span>`}
+              :`<span class="unver">검증 전</span>`)}
           </div>
         </div>
         <div class="cright">
           <div class="cprice">${p.budgetDrink?`<span>${won(p.budgetDrink)}</span>`:`<span style="font-size:14px;font-family:var(--f);font-weight:700;color:var(--faint)">예산 미확인</span>`}${p.budgetDrink?`<em>인당, 술 포함</em>`:""}</div>
-          <div class="cscore">${p.score?`<b>${p.score.toFixed(1)}</b> / 5`:"평점 없음"}</div>
+          <div class="cscore">${p.rated&&!isZero(p)?`<b>${p.score.toFixed(1)}</b> / 5`:scoreLabel(p)}</div>
         </div>
       </button>`;
     }).join("");
@@ -1197,15 +1352,20 @@ function render(){
 const U='<span class="unknown">미확인</span>';
 function openSheet(id){
   const p=DATA.find(x=>x.id===id),room=hasRoom(p);
+  const noWhy = isZero(p) ? "별점도 아깝다" : `별점 ${p.score.toFixed(1)}점`;
   const stars="★".repeat(Math.round(p.score))+"☆".repeat(5-Math.round(p.score));
   $("#sheet").innerHTML=`
   <div class="stop">
     <button class="x" id="closeSheet" aria-label="닫기">×</button>
     <h2>${p.name}${p.branch?" "+p.branch:""}</h2>
     <div class="sub">${p.cat}${p.tags.length?" · "+p.tags.slice(0,3).join(", "):""}</div>
-    ${p.verified
-      ?`<div class="ver-bar">쩝쩝박사 인증 완료 — 직접 먹어보고 확인한 곳이야</div>`
-      :`<div class="unver-bar">아직 검증 전이야. 팀원이 올린 정보라 확인이 필요할 수 있어.</div>`}
+    ${p.rec===false
+      ?`<div class="no-bar">${noWhy}${p.recNo>1?` · 제보 ${p.recNo}건`:""} — 회식 후보에서 빠졌고 룰렛에도 안 올라간다</div>`
+      +(p.noReason?`<div class="warn-bar">${p.noReason}</div>`:"")
+      :(p.recNo>0?`<div class="warn-bar">비추 제보가 ${p.recNo}건 있어. 아쉬운 점 먼저 읽어보고 잡아.</div>`:"")
+      +(p.verified
+        ?`<div class="ver-bar">쩝쩝박사 인증 완료 — 직접 먹어보고 확인한 곳이야</div>`
+        :`<div class="unver-bar">아직 검증 전이야. 팀원이 올린 정보라 확인이 필요할 수 있어.</div>`)}
   </div>
   <div class="sbar">
     ${p.phone?`<a href="tel:${p.phone}">전화 걸기</a>`:""}
@@ -1254,9 +1414,9 @@ function openSheet(id){
       ?`<div class="tip"><b>확인 필요</b> 지도 검색 결과는 "${p.foundName}"입니다. 다른 가게일 수 있으니 위치를 확인해주세요.</div>`:""}
   </div>
 
-  ${p.score||p.reviews.length?`<div class="sect">
+  ${p.rated||p.reviews.length?`<div class="sect">
     <h3>사내 후기${p.visits>1?` · ${p.visits}명이 등록`:""}</h3>
-    ${p.score?`<div class="starline"><span class="starnum">${p.score.toFixed(1)}<em>/ 5</em></span><span class="stars">${stars}</span></div>`:""}
+    ${p.rated?`<div class="starline"><span class="starnum">${p.score.toFixed(1)}<em>/ 5</em></span><span class="stars">${stars}</span>${isZero(p)?`<span style="font-size:12.5px;font-weight:800;color:var(--pink)">별점도 아깝다</span>`:""}</div>`:""}
     ${p.reviews.map(r=>`<div class="rv${r.bad?" bad":""}">${r.bad?"아쉬운 점 — ":""}${r.txt}${r.who?`<div class="who">${r.who}</div>`:""}</div>`).join("")}
   </div>`:""}
 
@@ -1292,7 +1452,7 @@ function relayoutMap(){
 const WC=["#DDFF4A","#FF2E93","#2B5BFF","#FFFFFF","#FF7A00","#B8FF29",
           "#8B5CF6","#00D9C0","#FFD400","#FF5252","#4ADEDE","#C2E82B"];
 let rot=-Math.PI/2,spinning=false,cand=[];
-const pool=()=>filtered().filter(p=>!S.excluded.has(p.id)).slice(0,12);
+const pool=()=>recList().filter(p=>!S.excluded.has(p.id)).slice(0,12);
 
 function draw(){
   const c=$("#wheel"),ctx=c.getContext("2d"),R=c.width/2,n=cand.length;
@@ -1326,7 +1486,7 @@ function draw(){
 }
 function openRoul(){
   cand=pool();rot=-Math.PI/2;
-  $("#roulSub").textContent=`조건에 맞는 ${cand.length}곳만 올렸습니다`;
+  $("#roulSub").textContent=`조건에 맞는 ${cand.length}곳만 올렸습니다 · 비추는 빼고`;
   $("#result").classList.remove("on");
   $("#doSpin").textContent="돌리기";
   renderEx();draw();
@@ -1419,8 +1579,12 @@ $("#sorts").addEventListener("click",e=>{
   const b=e.target.closest("[data-sort]");if(!b)return;
   S.sort=b.dataset.sort;
   [...$("#sorts").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render();});
+$("#tabs").addEventListener("click",e=>{
+  const b=e.target.closest("[data-tab]");if(!b)return;
+  setTab(b.dataset.tab);});
 window.__reset=()=>{
-  S.min=0;S.max=BMAX;S.head=10;S.needs.clear();S.excluded.clear();
+  S.min=0;S.max=BMAX;S.head=DEF_HEAD;S.needs.clear();S.excluded.clear();
+  S.tab="rec";if(S.sort==="worst")S.sort="fit";
   S.office=CONFIG.DEFAULT_OFFICE;OFFICE=officeOf(S.office)||OFFS[0];
   syncBudget();drawHead();drawOffices();
   [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));render();};
@@ -1428,6 +1592,7 @@ $("#reset").onclick=window.__reset;
 /* 조건을 모두 풀어 등록된 전부를 보여준다 */
 $("#showAll").onclick=()=>{
   S.min=0;S.max=BMAX;S.head=null;S.office=null;S.needs.clear();
+  S.tab="rec";if(S.sort==="worst")S.sort="fit";
   drawOffices();
   [...$("#needs").children].forEach(x=>x.setAttribute("aria-pressed","false"));
   syncBudget();drawHead();render();
@@ -1451,11 +1616,12 @@ document.addEventListener("keydown",e=>{
 /* 시트를 먼저 읽고, 실패하면 샘플로 그린다 */
 (async()=>{
   const ok=await loadSheet();
+  const noN=DATA.filter(p=>p.rec===false).length;
   $("#srcFlag").textContent = ok
-    ? `구글 시트 연동 · ${DATA.length}곳`
+    ? `구글 시트 연동 · ${DATA.length-noN}곳${noN?` · 비추 ${noN}`:""}`
     : "샘플 데이터 · 매장명은 가상입니다";
   /* 평점 데이터가 없으면 평점순 버튼을 숨긴다 */
-  if(!DATA.some(p=>p.score>0)){
+  if(!DATA.some(p=>p.rated)){
     const b=document.querySelector('[data-sort="score"]');
     if(b) b.hidden=true;
     if(S.sort==="score") S.sort="fit";
