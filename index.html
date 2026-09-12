@@ -4,6 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>회식각 — 오늘도 못 정했지</title>
+<meta name="description" content="사내 회식 맛집 목록. 예산이랑 조건만 찍으면 룰렛이 정해준다. 비추 명단까지.">
+
+<!-- 브라우저 탭 아이콘 · 홈 화면 아이콘 -->
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+
+<!-- 링크를 붙여넣었을 때 뜨는 미리보기 (카카오톡·슬랙 공통) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="회식각">
+<meta property="og:title" content="회식각 — 오늘도 못 정했지?">
+<meta property="og:description" content="예산이랑 조건만 찍어. 나머지는 룰렛이 정한다.">
+<meta property="og:url" content="https://ssohyunkim.github.io/hoesikgak/">
+<meta property="og:image" content="https://ssohyunkim.github.io/hoesikgak/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1091,6 +1109,8 @@ const cut=(s,n=180)=>s.length>n?s.slice(0,n-1)+"…":s;
 /* 카카오 메시지의 link 도메인은 콘솔에 등록된 도메인이어야 한다.
    map.kakao.com 같은 남의 도메인을 넣으면 "잘못된 요청"으로 거부당한다 */
 const ourLink=()=>({mobileWebUrl:SITE_URL,webUrl:SITE_URL});
+/* 카카오가 직접 긁어가는 주소라 data URI 나 상대경로는 쓸 수 없다 */
+const OG_IMAGE=SITE_URL.replace(/\/?$/,"/")+"og.png";
 function share({text,url,button,kakao}){
   const body=cut(text);
   withKakao(ok=>{
@@ -1116,11 +1136,22 @@ function copyLink(url){
   else prompt("이 주소를 복사해줘",url);
 }
 
-/* 1. 회식각 사이트 공유 */
+/* 1. 회식각 사이트 공유 — 이미지가 들어가려면 feed 템플릿이어야 한다
+   (text 템플릿은 이미지를 못 넣는다) */
 function shareSite(){
   share({
     text:"회식각 — 오늘도 못 정했지?\n예산이랑 조건만 찍으면 룰렛이 정해준다. 사내 회식 맛집 목록.",
-    url:SITE_URL, button:"회식각 열어보기"
+    url:SITE_URL, button:"회식각 열어보기",
+    kakao:{
+      objectType:"feed",
+      content:{
+        title:"회식각 — 오늘도 못 정했지?",
+        description:"예산이랑 조건만 찍어. 나머지는 룰렛이 정한다.",
+        imageUrl:OG_IMAGE, imageWidth:1200, imageHeight:630,
+        link:ourLink()
+      },
+      buttons:[{title:"회식각 열어보기",link:ourLink()}]
+    }
   });
 }
 /* 2. 가게 위치 공유.
@@ -1141,7 +1172,7 @@ function sharePlace(p){
     kakao: addr ? {
       objectType:"location",
       address:addr, addressTitle:title,
-      content:{title,description:cut(desc,100),link:ourLink()},
+      content:{title,description:cut(desc,100),imageUrl:OG_IMAGE,link:ourLink()},
       buttons:[{title:"회식각에서 보기",link:ourLink()}]
     } : null
   });
