@@ -11,7 +11,7 @@
 
    결과 (tools/out/ 아래)
      rating-migrate.tsv   평가 탭(별점 폼 응답 탭)에 붙일 행. 머리글 없이 데이터만 있다.
-                          열 순서는 tools/rating-form.md 의 질문 순서 + 검증, 영업상태.
+                          열 순서는 tools/rating-form.md 의 질문 순서와 같다.
                           머리글 바로 아래 첫 빈 행의 A열을 누르고 붙여넣는다.
                           (macOS: pbcopy < tools/out/rating-migrate.tsv)
      migrate-check.csv    찾은 결과 확인용. "확인 필요"는 이름이 다른 가게가 잡혔을 수 있는 행이다.
@@ -23,9 +23,9 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
 const API = "https://dapi.kakao.com/v2/local";
-/* 별점 폼 응답 탭의 열 순서: 타임스탬프 + 폼 질문 순서(tools/rating-form.md) + 손으로 붙인 검증, 영업상태 */
+/* 별점 폼 응답 탭의 열 순서: 타임스탬프 + 폼 질문 순서(tools/rating-form.md) */
 const HEAD = ["타임스탬프", "카카오ID", "매장명", "업종", "카카오분류", "주소", "위도", "경도",
-  "별점", "인당예산", "룸", "주차", "소음", "적정인원", "한줄평", "작성자", "기준", "요청ID", "검증", "영업상태"];
+  "별점", "인당예산", "룸", "주차", "소음", "적정인원", "한줄평", "작성자", "기준", "요청ID"];
 
 /* ── js/config.js 에서 설정 읽기 ───────────── */
 export function readConfig(src) {
@@ -131,7 +131,7 @@ async function main() {
     outRows.push([
       r["타임스탬프"], d.id, d.place_name, r["업종"], d.category_name, d.road_address_name || d.address_name,
       d.y, d.x, score, (r["인당예산"] || "").replace(/[^0-9]/g, ""), r["룸"], r["주차"], r["소음"],
-      r["적정인원"], r["후기"] || r["아쉬운점"] || "", `legacy-${line}`, o.key, `legacy-${line}`, r["검증"], r["영업상태"]
+      r["적정인원"], r["후기"] || r["아쉬운점"] || "", `legacy-${line}`, o.key, `legacy-${line}`
     ]);
     moved++;
   }

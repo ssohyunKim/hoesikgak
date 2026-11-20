@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseCSV, normHead, starScore, parseHead, roomOf, tri, catOf,
-  aggregate, legacyPlaces, combine, mergeAll, mergePending } from "../js/data.js";
+  aggregate, legacyPlaces, combine, mergeAll, mergePending, CLOSED_MARK } from "../js/data.js";
 
 const OFFICES = [{ key: "보라매", lat: 37.4993, lng: 126.9203 }, { key: "마포", lat: 37.5443, lng: 126.9515 }];
 const row = o => ({ "카카오ID": "100", "매장명": "삼겹리에", "업종": "고기", "카카오분류": "음식점 > 한식 > 육류,고기",
@@ -52,8 +52,18 @@ test("aggregate: 작성자별 마지막 행만 센다", () => {
   assert.equal(p.rated, true);
 });
 
-test("aggregate: 폐업 제외, 예산 중앙값, 룸 최빈값, 비추", () => {
-  assert.equal(aggregate([row({ "영업상태": "폐업" })], OFFICES).length, 0);
+test("aggregate: 문 닫았어요 신고는 서로 다른 2명이면 숨긴다", () => {
+  const closed = { "별점": "", "한줄평": CLOSED_MARK };
+  assert.equal(aggregate([row({ "작성자": "A" }), row({ "작성자": "B", ...closed })], OFFICES).length, 1);
+  assert.equal(aggregate([row({ "작성자": "B", ...closed }), row({ "작성자": "B", ...closed })], OFFICES).length, 1);
+  assert.equal(aggregate([row({ "작성자": "B", ...closed }), row({ "작성자": "C", ...closed })], OFFICES).length, 0);
+  const [p] = aggregate([row({ "작성자": "A", "한줄평": "맛있음" }), row({ "작성자": "B", ...closed })], OFFICES);
+  assert.equal(p.closedReports, 1);
+  assert.deepEqual(p.reviews.map(r => r.txt), ["맛있음"]);   // 신고 문구는 후기로 안 보인다
+  assert.equal(p.count, 1);
+});
+
+test("aggregate: 예산 중앙값, 룸 최빈값, 비추", () => {
   const [p] = aggregate([
     row({ "작성자": "A", "인당예산": "25000", "룸": "있음" }),
     row({ "작성자": "B", "인당예산": "40000", "룸": "있음" }),

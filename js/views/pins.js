@@ -34,7 +34,6 @@ export function cardHtml(p, { removable = false } = {}) {
     <div>
       <h3>${p.name}
         ${p.isNew ? `<span class="badge new">🆕 평가 없음</span>` : ""}
-        ${p.verified ? `<span class="badge ver">쩝쩝박사 인증</span>` : ""}
         ${p.rec === false ? `<span class="badge bad">비추</span>` : p.recNo ? `<span class="badge bad">비추 ${p.recNo}</span>` : ""}
       </h3>
       <div class="meta">${meta}</div>

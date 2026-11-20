@@ -8,7 +8,7 @@ const BASE = { key: "보라매", lat: 37.4993, lng: 126.9203 };
 const at = m => ({ lat: BASE.lat + m / 111000, lng: BASE.lng });   // 북쪽으로 m 미터
 let seq = 0;
 const R = o => ({ id: "k" + (++seq), kakaoId: String(seq), name: "평가" + seq, cat: "고기", rated: true, score: 4,
-  count: 3, recNo: 0, rec: true, budget: 0, fit: null, room: null, parking: null, noise: "", verified: false,
+  count: 3, recNo: 0, rec: true, budget: 0, fit: null, room: null, parking: null, noise: "",
   office: "보라매", ...at(200), ...o });
 const N = o => ({ ...R({ rated: false, score: 0, count: 0, isNew: true }), name: "주변" + seq, ...o });
 const cond = o => ({ s: "any", n: null, b: "any", w: [], x: [], at: "보라매", ...o });

@@ -45,7 +45,7 @@ export function placeFromDoc(d, base) {
     id: "k" + d.id, kakaoId: String(d.id), name: esc(d.place_name), cat: esc(catOf(d.category_name)),
     kcat: esc(d.category_name), addr: esc(d.road_address_name || d.address_name || ""), phone: esc(d.phone || ""),
     lat, lng, office: base.key, rated: false, score: 0, count: 0, recNo: 0, rec: true,
-    budget: 0, fit: null, room: null, parking: null, noise: "", reviews: [], verified: false, isNew: true,
+    budget: 0, fit: null, room: null, parking: null, noise: "", reviews: [], closedReports: 0, isNew: true,
     dist: distOf(base.lat, base.lng, lat, lng)
   };
 }

@@ -1,6 +1,6 @@
 /* 상세 시트 — 어느 화면에서든 가게를 누르면 아래에서(넓은 화면은 오른쪽에서) 올라온다 */
 import { fmtDist, won, $ } from "../util.js";
-import { rateFormHtml, bindRateForm, submitRating, canRate, myRating } from "../rating.js";
+import { rateFormHtml, bindRateForm, submitRating, canRate, myRating, reportClosed, reportedClosed } from "../rating.js";
 import { sharePlace, toast } from "../share.js";
 
 const U = `<span class="unk">모름</span>`;
@@ -42,11 +42,22 @@ export function open(p, ctx) {
 
     ${canRate() ? `<div class="block-title" id="rateTitle">${myRating(p.kakaoId) ? "내 평가 고치기" : "가봤다면 별점 남기기"}</div>
       <div id="rateBox">${rateFormHtml(p)}</div>` : ""}
+    ${canRate() && p.kakaoId ? `<p class="mealsw">${reportedClosed(p.kakaoId)
+      ? `<span class="note">문 닫았다고 알려주셨어요. 한 명 더 알려주면 목록에서 사라져요.</span>`
+      : `<button class="link" id="shClosed">이 가게 문 닫았어요</button>`}</p>` : ""}
   </div>`;
   el.classList.add("on"); el.setAttribute("aria-hidden", "false"); el.scrollTop = 0;
   $("#scrim").classList.add("on");
   $("#shClose").onclick = close;
   $("#shShare").onclick = () => sharePlace(p, { back: location.href });
+  const cl = $("#shClosed");
+  if (cl) cl.onclick = async () => {
+    if (!confirm("문 닫은 게 맞나요?\n두 명이 알려주면 목록과 룰렛에서 자동으로 빠져요.")) return;
+    try { await reportClosed(p, ctx.cond.at || ""); } catch { return toast("전송에 실패했어요. 잠시 뒤 다시 해주세요."); }
+    ctx.refresh();
+    toast("알려줘서 고마워요!");
+    await ctx.rerender();
+  };
   const box = $("#rateBox");
   if (box) bindRateForm(box, p, async st => {
     await submitRating(p, st, ctx.cond.at || "");

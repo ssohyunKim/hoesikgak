@@ -4,7 +4,7 @@
 import { CONFIG } from "./config.js";
 import { parseHash, buildHash } from "./router.js";
 import { applyTheme, toggleTheme } from "./theme.js";
-import { loadPlaces, currentPlaces, db } from "./data.js";
+import { loadPlaces, currentPlaces, closedIds, db } from "./data.js";
 import { loadMaps, geocodeOffices, resolveLegacy } from "./kakao.js";
 import { toast } from "./share.js";
 import { $ } from "./util.js";
@@ -23,6 +23,7 @@ export const ctx = {
   view: "home", cond: {}, meal: null,
   offices: OFFICES, me: null,
   places: [],
+  closed: new Set(),  // 문 닫았다는 신고가 모인 카카오ID — 주변 검색 결과에서도 뺀다
   dataOk: false,
   ready: null,        // 시트를 다 읽으면 끝나는 Promise
   mapsOk: null,       // 지도 SDK 가 뜨면 true
@@ -47,7 +48,7 @@ export const ctx = {
   },
   office: key => OFFICES.find(o => o.key === key) || OFFICES.find(o => o.key === CONFIG.DEFAULT_OFFICE) || OFFICES[0],
   defaultAt: () => ctx.cond.at || CONFIG.DEFAULT_OFFICE,
-  refresh() { ctx.places = currentPlaces(); },
+  refresh() { ctx.places = currentPlaces(); ctx.closed = closedIds(db.rows); },
   openSheet: p => sheet.open(p, ctx),
   closeSheet: () => sheet.close(),
   rerender: () => render()

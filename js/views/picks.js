@@ -15,7 +15,7 @@ export async function computePicks(ctx, c) {
   const base = await ctx.base(c.at);
   await ctx.ready;
   const mapsOk = await withTimeout(ctx.mapsOk, 7000, false);
-  const near = mapsOk ? await withTimeout(nearby(base), 8000, []) : [];
+  const near = (mapsOk ? await withTimeout(nearby(base), 8000, []) : []).filter(p => !ctx.closed.has(p.kakaoId));
   const sit = situationOf(c.s);
   return { base, sit, mapsOk, ...buildPicks(ctx.places, near, c, sit, CONFIG, base) };
 }

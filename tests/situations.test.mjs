@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { SITUATIONS, BUDGETS, situationOf, presetCond, score, bayes } from "../js/situations.js";
 
 const P = o => ({ rated: true, score: 4, count: 3, recNo: 0, budget: 40000, fit: null, room: null,
-  parking: null, noise: "", cat: "한식", verified: false, dist: 0, ...o });
+  parking: null, noise: "", cat: "한식", dist: 0, ...o });
 const cond = o => ({ s: "any", n: null, b: "any", w: [], x: [], ...o });
 
 test("상황과 예산 목록", () => {
@@ -62,8 +62,7 @@ test("빨리 먹기는 거리를 3배로 본다", () => {
   assert.ok(Math.abs(dq - 3 * da) < 1e-9, `${dq} vs ${da}`);
 });
 
-test("인증 +3, 비추 표 -5", () => {
+test("비추 표 -5", () => {
   const s = situationOf("any");
-  assert.equal(score(P({ verified: true }), cond(), s) - score(P(), cond(), s), 3);
   assert.equal(score(P(), cond(), s) - score(P({ recNo: 1 }), cond(), s), 5);
 });

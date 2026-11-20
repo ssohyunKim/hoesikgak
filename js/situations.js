@@ -73,7 +73,6 @@ export function score(p, cond, sit) {
     if (k === "quiet") s += p.noise === "조용" ? 6 : p.noise === "시끄러움" ? -10 : 0;
     else if (k === "room" || k === "parking") s += p[k] === true ? 8 : p[k] === false ? -10 : 0;
   }
-  if (p.verified) s += 3;
   s -= 5 * (p.recNo || 0);
   return s;
 }

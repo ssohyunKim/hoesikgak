@@ -14,7 +14,7 @@ export async function render(root, ctx, alive) {
   const base = await ctx.base(at);
   await ctx.ready;
   const mapsOk = await withTimeout(ctx.mapsOk, 7000, false);
-  const near = mapsOk ? await withTimeout(nearby(base), 8000, []) : [];
+  const near = (mapsOk ? await withTimeout(nearby(base), 8000, []) : []).filter(p => !ctx.closed.has(p.kakaoId));
   if (!alive()) return;
 
   const inRange = p => p.lat && p.lng ? distOf(base.lat, base.lng, p.lat, p.lng) <= CONFIG.NEAR_RADIUS : (base.key !== "me" && p.office === base.key);

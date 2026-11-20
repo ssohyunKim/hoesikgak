@@ -5,7 +5,7 @@
 import { CONFIG } from "./config.js";
 import * as store from "./store.js";
 import { esc, unesc } from "./util.js";
-import { addPendingRow } from "./data.js";
+import { addPendingRow, CLOSED_MARK } from "./data.js";
 
 const MINE_KEY = "hoesik.mine", SPIN_KEY = "hoesik.lastSpin", UID_KEY = "hoesik.uid";
 const H = 3600e3;
@@ -56,6 +56,22 @@ export const canRate = () => !!FORM;
 /* st: {score, text, budget, fit, room, parking, noise}. 성공 여부를 알 수 없어서(no-cors)
    보내지면 성공으로 보고 화면에 바로 반영한다 */
 export async function submitRating(p, st, base) {
+  await send(p, st, base);
+  const mine = myRatings(); mine[p.kakaoId] = { ...st }; store.set(MINE_KEY, mine);
+  const last = lastSpin();
+  if (last && last.place && last.place.kakaoId === p.kakaoId) forgetSpin();
+}
+
+/* "문 닫았어요" — 별점 없이 표시만 남긴다. 서로 다른 사람의 신고가 모이면 data.js 가 자동으로 숨긴다.
+   같은 사람의 마지막 행만 세므로, 내 예전 별점은 이 신고로 바뀐다 */
+const CLOSED_KEY = "hoesik.closed";
+export const reportedClosed = kid => !!store.get(CLOSED_KEY, {})[kid];
+export async function reportClosed(p, base) {
+  await send(p, { score: "", text: CLOSED_MARK }, base);
+  const m = store.get(CLOSED_KEY, {}); m[p.kakaoId] = Date.now(); store.set(CLOSED_KEY, m);
+}
+
+async function send(p, st, base) {
   if (!FORM) throw new Error("no_form");
   const me = uid(), reqId = me + "-" + Date.now().toString(36);
   const vals = {
@@ -66,9 +82,6 @@ export async function submitRating(p, st, base) {
   };
   await fetch(FORM.action, { method: "POST", mode: "no-cors", body: formBody(FORM, vals) });
   addPendingRow({ ...Object.fromEntries(Object.entries(vals).map(([k, v]) => [k, String(v)])), _t: Date.now() });
-  const mine = myRatings(); mine[p.kakaoId] = { ...st }; store.set(MINE_KEY, mine);
-  const last = lastSpin();
-  if (last && last.place && last.place.kakaoId === p.kakaoId) forgetSpin();
 }
 
 /* ── 입력 폼 ───────────────────────────────── */

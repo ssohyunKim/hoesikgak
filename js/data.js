@@ -2,9 +2,11 @@
    데이터 — 구글 시트 읽기와 가게 집계
 
    평가 탭 열: 타임스탬프 카카오ID 매장명 업종 카카오분류 주소 위도 경도 별점 인당예산
-               룸 주차 소음 적정인원 한줄평 작성자 기준 요청ID 검증 영업상태
+               룸 주차 소음 적정인원 한줄평 작성자 기준 요청ID
    - 카카오ID로 묶는다. 같은 작성자가 여러 번 남기면 마지막 행만 센다.
    - 선택 정보는 가장 많이 나온 값, 예산은 중앙값.
+   - 운영자가 손으로 고치는 칸은 없다. 폐업은 "문 닫았어요" 신고(한줄평이 CLOSED_MARK, 별점 빈칸)가
+     서로 다른 CLOSED_REPORTS 명에게서 모이면 자동으로 숨긴다.
    - 옛 등록 폼(이름만 있음)은 평가 탭에 이관 행(작성자 legacy-*)이 생기기 전까지 같이 읽는다.
    ═══════════════════════════════════════════════════ */
 import { CONFIG } from "./config.js";
@@ -69,7 +71,8 @@ export function roomOf(v) {
   return tri(s) ?? true;
 }
 const numOf = v => { const n = parseFloat(T(v).replace(/[^0-9.]/g, "")); return isNaN(n) ? 0 : n; };
-const VERIFY = ["o", "y", "yes", "완료", "검증", "검증완료", "확인", "true", "1", "v"];
+export const CLOSED_MARK = "[폐업] 문 닫았어요";
+const isClosedRow = r => T(r["한줄평"]) === CLOSED_MARK;
 
 /* 카카오 분류 → 업종. 위에서부터 먼저 걸리는 쪽 */
 const CAT_RULES = [[/곱창|막창|대창/, "곱창"], [/육류|고기|삼겹|갈비|족발|보쌈|오리|닭갈비/, "고기"],
@@ -114,7 +117,8 @@ export function aggregate(rows, offices = CONFIG.OFFICES) {
   const out = [];
   groups.forEach((byAuthor, id) => {
     const g = [...byAuthor.values()], last = g[g.length - 1];
-    if (g.some(r => T(r["영업상태"]) === "폐업")) return;
+    const closedReports = g.filter(isClosedRow).length;
+    if (closedReports >= CONFIG.CLOSED_REPORTS) return;
     const scores = g.map(r => starScore(r["별점"])).filter(s => s !== null);
     const lat = +T(last["위도"]) || null, lng = +T(last["경도"]) || null;
     const p = {
@@ -128,10 +132,9 @@ export function aggregate(rows, offices = CONFIG.OFFICES) {
       fit: parseHead(mode(g.map(r => r["적정인원"]))),
       room: roomOf(mode(g.map(r => r["룸"]))), parking: tri(mode(g.map(r => r["주차"]))),
       noise: esc(mode(g.map(r => r["소음"]))),
-      reviews: g.filter(r => T(r["한줄평"])).reverse()
+      reviews: g.filter(r => T(r["한줄평"]) && !isClosedRow(r)).reverse()
         .map(r => ({ txt: esc(T(r["한줄평"])), bad: isBad(starScore(r["별점"])) })),
-      verified: g.some(r => VERIFY.includes(T(r["검증"]).toLowerCase())),
-      isNew: false
+      closedReports, isNew: false
     };
     p.rec = recOf(p);
     out.push(p);
@@ -144,7 +147,7 @@ export function legacyPlaces(rows) {
   const groups = new Map();
   rows.forEach(r => {
     const name = T(r["매장명"]);
-    if (!name || T(r["영업상태"]) === "폐업") return;
+    if (!name) return;
     const office = T(r["사옥"] || r["오피스"]);
     const key = name.replace(/\s/g, "") + "|" + office;
     if (!groups.has(key)) groups.set(key, []);
@@ -164,8 +167,7 @@ export function legacyPlaces(rows) {
       room: roomOf(mode(g.map(r => r["룸"]))), parking: tri(mode(g.map(r => r["주차"]))),
       noise: esc(mode(g.map(r => r["소음"]))),
       reviews: g.filter(r => T(r["후기"])).map(r => ({ txt: esc(T(r["후기"])), bad: isBad(starScore(r["평점"])) })),
-      verified: g.some(r => VERIFY.includes(T(r["검증"]).toLowerCase())),
-      isNew: false, legacy: true
+      closedReports: 0, isNew: false, legacy: true
     };
     p.rec = recOf(p);
     return p;
@@ -181,14 +183,28 @@ export function combine(b, a) {
   for (const k of ["room", "parking", "fit"]) if (p[k] === null) p[k] = a[k];
   p.reviews = a.reviews.concat(b.reviews);
   p.recNo = b.recNo + a.recNo;
-  p.verified = b.verified || a.verified;
+  p.closedReports = a.closedReports;
   p.kakaoId = a.kakaoId; p.id = a.id;
   p.rec = recOf(p);
   return p;
 }
-export function mergeAll(legacy, agg) {
+/* 문 닫았다는 신고가 충분히 모인 카카오ID */
+export function closedIds(rows) {
+  const by = new Map();
+  rows.forEach(r => {
+    const id = T(r["카카오ID"]).replace(/\.0+$/, "");
+    if (!id) return;
+    if (!by.has(id)) by.set(id, new Map());
+    by.get(id).set(T(r["작성자"]) || Math.random(), isClosedRow(r));
+  });
+  const out = new Set();
+  by.forEach((m, id) => { if ([...m.values()].filter(Boolean).length >= CONFIG.CLOSED_REPORTS) out.add(id); });
+  return out;
+}
+export function mergeAll(legacy, agg, closed = new Set()) {
   const byK = new Map(agg.map(p => [p.kakaoId, p]));
-  const out = legacy.map(b => {
+  /* 새 평가 쪽에서 폐업으로 숨겨진 가게는 옛 데이터로도 되살리지 않는다 */
+  const out = legacy.filter(b => !closed.has(b.kakaoId)).map(b => {
     const a = b.kakaoId && byK.get(b.kakaoId);
     if (!a) return b;
     byK.delete(b.kakaoId);
@@ -234,7 +250,7 @@ export async function loadPlaces() {
   db.ok = ok;
   return ok;
 }
-export const currentPlaces = () => mergeAll(db.legacy, aggregate(db.rows));
+export const currentPlaces = () => mergeAll(db.legacy, aggregate(db.rows), closedIds(db.rows));
 export function addPendingRow(row) {
   db.rows.push(row);
   store.set(PENDING_KEY, store.get(PENDING_KEY, []).concat(row));

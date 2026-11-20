@@ -72,6 +72,14 @@ await p.click('#rateBox .star[data-v="5"]'); await p.click('#rateBox [type=submi
 log('post2 별점:',posts[1]&&posts[1].get('entry.1586533610'),'| sheet reopened as rated:',(await p.textContent('#sheet').catch(()=>'')).includes('사내 별점'));
 await shot('10rated');
 await p.keyboard.press('Escape');
+// 폐업 신고: 다른 사람 1명이 이미 신고한 근처가게3 → 내가 신고하면 사라진다
+p.on('dialog',d=>d.accept());
+await p.click('[data-f="all"]'); await p.waitForTimeout(200);
+const before=(await p.$$eval('#list .pc h3',e=>e.map(x=>x.textContent.trim()))).some(t=>t.startsWith('근처가게3'));
+await p.locator('#list .pc',{hasText:'근처가게3'}).first().click(); await p.waitForTimeout(300);
+await p.click('#shClosed'); await p.waitForTimeout(900);
+const after=(await p.$$eval('#list .pc h3',e=>e.map(x=>x.textContent.trim()))).some(t=>t.startsWith('근처가게3'));
+log('closed report:',before,'→',after,'| post 한줄평:',posts.at(-1)&&posts.at(-1).get('entry.134488005'));
 // 테마 토글, 내 위치
 await p.click('#themeBtn'); log('theme toggled:',await p.evaluate(()=>document.documentElement.dataset.theme));
 await p.click('[data-at="me"]'); await p.waitForTimeout(800); log('me title:',(await p.textContent('.phead h2')).trim());
