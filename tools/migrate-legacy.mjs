@@ -27,14 +27,14 @@ const API = "https://dapi.kakao.com/v2/local";
 const HEAD = ["타임스탬프", "카카오ID", "매장명", "업종", "카카오분류", "주소", "위도", "경도",
   "별점", "인당예산", "룸", "주차", "소음", "적정인원", "한줄평", "작성자", "기준", "요청ID", "검증", "영업상태"];
 
-/* ── index.html 에서 설정 읽기 ─────────────── */
-export function readConfig(html) {
-  const sheetId = html.match(/SHEET_ID:\s*"([^"]+)"/)?.[1];
-  const sheetName = html.match(/SHEET_NAME:\s*"([^"]+)"/)?.[1];
-  const offices = [...html.matchAll(
-    /\{\s*key:"([^"]+)",\s*name:"([^"]+)",\s*addr:"([^"]+)",\s*lat:([\d.]+),\s*lng:([\d.]+)\s*\}/g
+/* ── js/config.js 에서 설정 읽기 ───────────── */
+export function readConfig(src) {
+  const sheetId = src.match(/SHEET_ID:\s*"([^"]+)"/)?.[1];
+  const sheetName = src.match(/LEGACY_SHEET:\s*"([^"]+)"/)?.[1];
+  const offices = [...src.matchAll(
+    /\{\s*key:\s*"([^"]+)",\s*name:\s*"([^"]+)",\s*addr:\s*"([^"]+)",\s*lat:\s*([\d.]+),\s*lng:\s*([\d.]+)\s*\}/g
   )].map(m => ({ key: m[1], name: m[2], addr: m[3], lat: +m[4], lng: +m[5] }));
-  if (!sheetId || !offices.length) throw new Error("index.html 에서 CONFIG 를 못 읽었습니다");
+  if (!sheetId || !sheetName || !offices.length) throw new Error("js/config.js 에서 CONFIG 를 못 읽었습니다");
   return { sheetId, sheetName, offices };
 }
 
@@ -98,7 +98,7 @@ async function kakao(path, params, key) {
 async function main() {
   const key = process.env.KAKAO_REST_KEY;
   if (!key) { console.error("KAKAO_REST_KEY 환경변수가 필요합니다. (카카오 콘솔의 REST API 키)"); process.exit(1); }
-  const cfg = readConfig(readFileSync(join(ROOT, "index.html"), "utf8"));
+  const cfg = readConfig(readFileSync(join(ROOT, "js", "config.js"), "utf8"));
 
   for (const o of cfg.offices) {
     const j = await kakao("search/address.json", { query: o.addr }, key);

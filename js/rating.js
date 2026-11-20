@@ -1,0 +1,131 @@
+/* ═══════════════════════════════════════════════════
+   별점 남기기 — 구글 폼으로 보내고, 반영될 때까지 이 브라우저에 들고 있는다.
+   룰렛 결과를 기억해 두었다가 다음 방문 때 "어땠어요?"로 묻는다.
+   ═══════════════════════════════════════════════════ */
+import { CONFIG } from "./config.js";
+import * as store from "./store.js";
+import { esc, unesc } from "./util.js";
+import { addPendingRow } from "./data.js";
+
+const MINE_KEY = "hoesik.mine", SPIN_KEY = "hoesik.lastSpin", UID_KEY = "hoesik.uid";
+const H = 3600e3;
+
+/* ── 순수 함수 ─────────────────────────────── */
+/* 미리 채운 링크(각 칸에 질문 이름)를 읽어 제출 주소와 칸 번호 짝을 만든다 */
+export function parseFormLink(link) {
+  if (!link) return null;
+  try {
+    const url = new URL(link), entries = {};
+    url.searchParams.forEach((v, k) => { if (/^entry\.\d+$/.test(k)) entries[v.trim()] = k; });
+    if (!entries["카카오ID"] || !entries["별점"]) return null;
+    return { action: url.origin + url.pathname.replace(/\/(viewform|formResponse).*$/, "") + "/formResponse", entries };
+  } catch { return null; }
+}
+export function formBody(form, vals) {
+  const body = new URLSearchParams();
+  for (const [name, entry] of Object.entries(form.entries)) if (name in vals) body.set(entry, String(vals[name] ?? ""));
+  return body;
+}
+/* 룰렛 3시간 뒤부터 3일 안, 아직 평가 안 했으면 묻는다 */
+export function reviewDue(now, last, mineIds) {
+  if (!last || !last.place) return null;
+  const age = now - last.t;
+  if (age < 3 * H || age > 3 * 24 * H) return null;
+  if (mineIds.has(last.place.kakaoId)) return null;
+  return last.place;
+}
+
+/* ── 저장소 ───────────────────────────────── */
+export function uid() {
+  let u = store.get(UID_KEY, "");
+  if (!u) { u = "u" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); store.set(UID_KEY, u); }
+  return u;
+}
+export const myRatings = () => store.get(MINE_KEY, {});
+export const myRating = kid => myRatings()[kid] || null;
+export function rememberSpin(place) {
+  if (place && place.kakaoId) store.set(SPIN_KEY, { place, t: Date.now() });
+}
+export const lastSpin = () => store.get(SPIN_KEY, null);
+export const forgetSpin = () => store.del(SPIN_KEY);
+
+/* ── 보내기 ───────────────────────────────── */
+const FORM = parseFormLink(CONFIG.RATE_FORM);
+export const canRate = () => !!FORM;
+
+/* st: {score, text, budget, fit, room, parking, noise}. 성공 여부를 알 수 없어서(no-cors)
+   보내지면 성공으로 보고 화면에 바로 반영한다 */
+export async function submitRating(p, st, base) {
+  if (!FORM) throw new Error("no_form");
+  const me = uid(), reqId = me + "-" + Date.now().toString(36);
+  const vals = {
+    "카카오ID": p.kakaoId, "매장명": unesc(p.name), "업종": unesc(p.cat), "카카오분류": unesc(p.kcat || ""),
+    "주소": unesc(p.addr || ""), "위도": p.lat || "", "경도": p.lng || "", "별점": st.score,
+    "인당예산": st.budget || "", "룸": st.room || "", "주차": st.parking || "", "소음": st.noise || "",
+    "적정인원": st.fit || "", "한줄평": (st.text || "").slice(0, 300), "작성자": me, "기준": base || "", "요청ID": reqId
+  };
+  await fetch(FORM.action, { method: "POST", mode: "no-cors", body: formBody(FORM, vals) });
+  addPendingRow({ ...Object.fromEntries(Object.entries(vals).map(([k, v]) => [k, String(v)])), _t: Date.now() });
+  const mine = myRatings(); mine[p.kakaoId] = { ...st }; store.set(MINE_KEY, mine);
+  const last = lastSpin();
+  if (last && last.place && last.place.kakaoId === p.kakaoId) forgetSpin();
+}
+
+/* ── 입력 폼 ───────────────────────────────── */
+const OPTS = {
+  budget: ["인당 예산 (술 포함)", [["25000", "3만 이하"], ["40000", "3~5만"], ["70000", "5~10만"], ["120000", "10만 이상"]]],
+  fit: ["적정 인원", [["4명 이하", "4명 이하"], ["5~8명", "5~8명"], ["9~12명", "9~12명"], ["13~20명", "13~20명"], ["20명 이상", "20명 이상"]]],
+  room: ["룸", [["있음", "있음"], ["없음", "없음"]]],
+  parking: ["주차", [["가능", "가능"], ["불가", "불가"]]],
+  noise: ["소음", [["조용", "조용"], ["보통", "보통"], ["시끄러움", "시끄러움"]]],
+};
+export function rateFormHtml(p, { compact = false } = {}) {
+  if (!p.kakaoId) return `<p class="note">지도에서 이 가게 위치를 찾는 중이에요. 잠시 뒤 다시 열어주세요.</p>`;
+  const mine = myRating(p.kakaoId) || {};
+  const stars = [1, 2, 3, 4, 5].map(n =>
+    `<button type="button" class="star" data-v="${n}" aria-pressed="${mine.score >= n}" aria-label="${n}점">★</button>`).join("");
+  const chips = Object.entries(OPTS).map(([k, [label, opts]]) => `<div class="rrow"><span>${label}</span><div class="chips">${
+    opts.map(([v, t]) => `<button type="button" class="chip sm" data-k="${k}" data-v="${v}" aria-pressed="${String(mine[k]) === v}">${t}</button>`).join("")
+  }</div></div>`).join("");
+  return `<form class="rate" novalidate>
+    <div class="stars" role="group" aria-label="별점">${stars}
+      <button type="button" class="chip sm zero" data-v="0" aria-pressed="${mine.score === 0}">0점 · 별점도 아깝다</button></div>
+    <p class="note">1점 이하는 비추 명단으로 가고 룰렛에서 빠져요.</p>
+    <label class="flabel">코멘트 <em>선택</em>
+      <textarea name="text" maxlength="300" rows="${compact ? 2 : 3}" placeholder="좋았던 점, 아쉬운 점, 예약 요령 뭐든. 안 써도 돼요.">${esc(mine.text || "")}</textarea></label>
+    ${compact ? "" : `<details class="more"${["budget", "fit", "room", "parking", "noise"].some(k => mine[k]) ? " open" : ""}>
+      <summary>더 알려주면 좋은 것 (선택)</summary>${chips}</details>`}
+    <button type="submit" class="btn primary block" disabled>${mine.score !== undefined ? "평가 고치기" : "남기기"}</button>
+  </form>`;
+}
+/* onSubmit(st) 는 Promise. 끝나면 폼을 다시 그리는 건 호출한 쪽이 한다 */
+export function bindRateForm(root, p, onSubmit) {
+  const form = root.querySelector("form.rate"); if (!form) return;
+  const st = { ...(myRating(p.kakaoId) || {}) };
+  const send = form.querySelector("[type=submit]");
+  const sync = () => { send.disabled = st.score === undefined; };
+  form.addEventListener("click", e => {
+    const s = e.target.closest(".star,.zero");
+    if (s) {
+      st.score = +s.dataset.v;
+      form.querySelectorAll(".star").forEach(b => b.setAttribute("aria-pressed", String(st.score > 0 && +b.dataset.v <= st.score)));
+      form.querySelector(".zero").setAttribute("aria-pressed", String(st.score === 0));
+      return sync();
+    }
+    const c = e.target.closest(".chip[data-k]");
+    if (c) {
+      const k = c.dataset.k, on = st[k] === c.dataset.v;
+      if (on) delete st[k]; else st[k] = c.dataset.v;
+      form.querySelectorAll(`.chip[data-k="${k}"]`).forEach(b => b.setAttribute("aria-pressed", String(!on && b === c)));
+    }
+  });
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    if (st.score === undefined) return;
+    st.text = form.querySelector("textarea").value.trim();
+    send.disabled = true; send.textContent = "보내는 중";
+    try { await onSubmit({ ...st }); }
+    catch { send.disabled = false; send.textContent = "다시 보내기"; }
+  });
+  sync();
+}

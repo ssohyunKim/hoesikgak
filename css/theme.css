@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════════
+   회식각 색 — 이 파일만 바꾸면 사이트 전체 색이 바뀐다
+   day   : 5:00~16:59 (따뜻한 앱)
+   night : 17:00~4:59 (밤의 포차). .night 영역(룰렛 무대)은 낮에도 night 색을 쓴다
+   ═══════════════════════════════════════════════════ */
+:root,
+:root[data-theme="day"] {
+  --bg: #FFF8F0;
+  --surface: #FFFFFF;
+  --surface-2: #F7EFE6;       /* 칩·보조 버튼 바탕 */
+  --text: #2B1D14;
+  --muted: #9A8F84;
+  --line: #F0E4D8;
+  --accent: #FF6B2C;          /* 주 버튼·선택 상태 */
+  --accent-ink: #FFFFFF;      /* accent 위 글자 */
+  --accent-soft: #FFE6D8;     /* 선택된 칩 바탕 */
+  --good: #2F9E6B;
+  --bad: #E0483E;
+  --bad-soft: #FDE7E5;
+  --new: #3D7BFA;             /* 🆕 평가 없음 */
+  --new-soft: #E6EEFF;
+  --star: #FF9F1C;
+  --shadow: 0 2px 12px rgba(80, 40, 10, .08);
+  --shadow-lg: 0 10px 40px rgba(80, 40, 10, .16);
+  --marq-bg: #2B1D14;
+  --marq-text: #FFE6D8;
+  --scrim: rgba(43, 29, 20, .45);
+  color-scheme: light;
+}
+
+:root[data-theme="night"],
+.night {
+  --bg: #14161C;
+  --surface: #1F222B;
+  --surface-2: #2A2E39;
+  --text: #F1EDE4;
+  --muted: #8C8F99;
+  --line: #2E323D;
+  --accent: #FFC94D;
+  --accent-ink: #14161C;
+  --accent-soft: #3A3322;
+  --good: #5FD3A0;
+  --bad: #FF7A6E;
+  --bad-soft: #3A2224;
+  --new: #8FB3FF;
+  --new-soft: #222B40;
+  --star: #FFC94D;
+  --shadow: 0 2px 12px rgba(0, 0, 0, .35);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, .55);
+  --marq-bg: #0B0C10;
+  --marq-text: #FFC94D;
+  --scrim: rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+
+/* 룰렛 칸 색 (밤 무대 위) */
+.night {
+  --wheel-1: #FFC94D;
+  --wheel-2: #FF6B2C;
+  --wheel-3: #F1EDE4;
+  --wheel-4: #8FB3FF;
+  --wheel-5: #5FD3A0;
+  --wheel-6: #FF9EC4;
+  --wheel-ink: #14161C;
+  --wheel-line: #14161C;
+  --wheel-hub: #14161C;
+  --wheel-hub-ink: #FFC94D;
+}
+
+/* 지도 핀: 별점 구간 색 */
+:root {
+  --pin-hi: #2F9E6B;     /* 4점 이상 */
+  --pin-mid: #FF9F1C;    /* 3점대 */
+  --pin-lo: #9A8F84;     /* 3점 미만 */
+  --pin-bad: #E0483E;    /* 비추 */
+  --pin-new: #3D7BFA;    /* 평가 없음 */
+  --pin-base: #2B1D14;   /* 기준 위치 */
+  --pin-ink: #FFFFFF;    /* 핀 위 글자 */
+}
