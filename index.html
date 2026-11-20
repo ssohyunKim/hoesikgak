@@ -16,8 +16,8 @@
 <meta property="og:site_name" content="회식각">
 <meta property="og:title" content="회식각 — 오늘도 못 정했지?">
 <meta property="og:description" content="예산이랑 조건만 찍어. 나머지는 룰렛이 정한다.">
-<meta property="og:url" content="https://ssohyunkim.github.io/hoesikgak/">
-<meta property="og:image" content="https://ssohyunkim.github.io/hoesikgak/og.png">
+<meta property="og:url" content="https://www.hoesikgak.com/">
+<meta property="og:image" content="https://www.hoesikgak.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -27,27 +27,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --lime:#DDFF4A;        /* 강조용 형광. 작은 면적에만 */
+  --lime:#E3EBA4;        /* 강조용 연두. 형광은 눈이 아파서 채도를 낮췄다 */
   --lime-dk:#D6E0AF;
-  --bg:#EDF1DA;          /* 페이지 배경. 눈이 편한 연한 라임 */
-  --bg-dot:#DDE4C0;
+  --bg:#F5F4EE;          /* 페이지 배경. 색기 없는 따뜻한 회백색 */
+  --bg-dot:#E6E4DA;
   --ink:#0B0B0B;
-  --pink:#FF2E93;
-  --blue:#2B5BFF;
+  --pink:#E5487F;
+  --blue:#4062D8;
   --paper:#FFFDF4;
   --grey:#6E6E68;
   --faint:#A5A59D;
-  --bd:2.5px solid var(--ink);
-  --sh:5px 5px 0 var(--ink);
-  --sh-sm:3px 3px 0 var(--ink);
+  --bd:2px solid var(--ink);
+  --bd-soft:1.5px solid #D9DCC9;   /* 보조 요소용 옅은 테두리 */
+  --sh:4px 4px 0 var(--ink);
+  --sh-sm:2px 2px 0 var(--ink);
   --disp:'Gothic A1','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --f:'Gothic A1','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--f);font-size:15px;line-height:1.6;color:var(--ink);
   background:var(--bg);
-  background-image:radial-gradient(var(--bg-dot) 1.4px,transparent 1.4px);
-  background-size:18px 18px;
   -webkit-font-smoothing:antialiased}
 button,input,select{font-family:inherit}
 button{cursor:pointer}
@@ -65,22 +64,18 @@ header{border-bottom:var(--bd);background:var(--bg)}
 header .wrap{display:flex;align-items:center;gap:12px;height:70px}
 .logo{font-family:var(--disp);font-weight:800;font-size:25px;line-height:1;letter-spacing:-.6px;
   background:var(--ink);color:var(--lime);padding:7px 13px 5px;
-  transform:rotate(-2deg);box-shadow:var(--sh-sm)}
+  box-shadow:var(--sh-sm)}
 .logo b{color:var(--pink)}
-.logo-note{font-size:12.5px;font-weight:700;background:var(--pink);color:#fff;
-  border:var(--bd);padding:3px 9px;transform:rotate(1.5deg)}
-.flag{margin-left:auto;font-size:12px;font-weight:700;border:var(--bd);
-  background:#fff;padding:4px 10px}
+.logo-note{font-size:12.5px;font-weight:700;color:var(--grey)}
+.flag{margin-left:auto;font-size:12px;font-weight:700;color:var(--grey)}
 
 /* ── 히어로 ────────────────────────────── */
-.hero{padding:44px 0 30px;position:relative}
+.hero{padding:36px 0 24px;position:relative}
 .hero h1{font-family:var(--disp);font-weight:800;font-size:clamp(29px,5vw,46px);line-height:1.08;
   margin:0 0 14px;letter-spacing:-1.2px}
-.hero h1 em{font-style:normal;color:var(--pink);
-  text-shadow:3px 3px 0 var(--ink)}
-.hero h1 u{text-decoration:none;background:var(--ink);color:var(--lime);
-  padding:0 10px;display:inline-block;transform:rotate(-1.5deg)}
-.herosub{margin:0;font-size:15px;font-weight:600;max-width:36ch}
+.hero h1 em{font-style:normal;color:var(--pink)}
+.hero h1 u{text-decoration:none}
+.herosub{margin:0;font-size:15px;font-weight:600;max-width:36ch;color:#3A3A34}
 .stamp{position:absolute;right:26px;top:36px;font-weight:700;font-size:13px;
   background:var(--blue);color:#fff;border:var(--bd);padding:12px 14px 10px;
   transform:rotate(9deg);box-shadow:var(--sh-sm);text-align:center;line-height:1.15}
@@ -90,22 +85,21 @@ header .wrap{display:flex;align-items:center;gap:12px;height:70px}
 .panelwrap{padding-bottom:8px}
 .fpanel{background:#fff;border:var(--bd);box-shadow:var(--sh);padding:22px 24px 18px}
 .frow{display:grid;grid-template-columns:1.35fr 130px 1fr;gap:28px;align-items:start}
-.fcell label{display:block;font-weight:700;font-size:13px;margin-bottom:9px;
-  background:var(--ink);color:var(--lime);padding:3px 9px 2px;width:fit-content}
+.fcell label{display:block;font-weight:800;font-size:13px;margin-bottom:9px;color:var(--grey)}
 .fnum{font-family:var(--disp);font-weight:800;font-size:25px;line-height:1;letter-spacing:-.6px}
-.fnum span{background:linear-gradient(transparent 60%,#E8FF7A 60%)}
+.fnum span{background:linear-gradient(transparent 60%,var(--lime) 60%)}
 .fnum i{font-style:normal;font-family:var(--f);font-size:13px;font-weight:700;margin-left:4px}
 .step{display:flex;align-items:center;gap:8px}
 .step button{width:38px;height:38px;border:var(--bd);background:#fff;font-size:19px;
-  line-height:1;padding:0;box-shadow:var(--sh-sm)}
+  line-height:1;padding:0}
 .step button:active{transform:translate(2px,2px);box-shadow:none}
 .step .n{font-family:var(--disp);font-weight:800;font-size:23px;min-width:48px;text-align:center}
 .step > span{font-size:13px;font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:var(--bd);background:#fff;padding:8px 14px;font-size:13.5px;
-  font-weight:700;box-shadow:var(--sh-sm)}
-.chip:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
-.chip[aria-pressed=true]{background:var(--pink);color:#fff;transform:rotate(-2deg)}
+  font-weight:700}
+.chip:hover{background:#F1F0E8}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--lime)}
 #budgets .chip{padding:7px 11px;font-size:12.5px}
 .fnum#budgetVal{margin-top:11px;font-size:22px}
 .dual{position:relative;height:34px;margin-top:6px}
@@ -120,25 +114,23 @@ header .wrap{display:flex;align-items:center;gap:12px;height:70px}
 .dual input[type=range]::-moz-range-track{height:34px;background:none;border:none}
 .dual input[type=range]::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;
   background:var(--pink);border:var(--bd);cursor:grab}
-#budgets .chip[aria-pressed=true]{transform:none;box-shadow:var(--sh-sm)}
 .fbottom{display:flex;align-items:center;gap:10px;margin-top:20px;padding-top:16px;
-  border-top:var(--bd);flex-wrap:wrap}
+  border-top:var(--bd-soft);flex-wrap:wrap}
 .cnt{font-size:14px;font-weight:700;margin-right:auto}
 .cnt b{font-family:var(--disp);font-weight:800;font-size:21px;color:var(--pink);vertical-align:-2px;
   margin:0 2px}
-.btn{border:var(--bd);background:#fff;padding:11px 18px;font-size:14px;font-weight:700;
-  box-shadow:var(--sh-sm)}
-.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
-.btn:active{transform:translate(2px,2px);box-shadow:none}
+.btn{border:var(--bd);background:#fff;padding:11px 18px;font-size:14px;font-weight:700}
+.btn:hover{background:#F1F0E8}
+.btn:active{transform:translate(1px,1px)}
 .btn-main{background:var(--pink);color:#fff;font-weight:800;font-size:16px;
   padding:12px 22px;box-shadow:var(--sh)}
-.btn-main:hover{box-shadow:7px 7px 0 var(--ink)}
+.btn-main:hover{background:var(--pink);transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
 
 /* ── 목록 헤더 ─────────────────────────── */
 main{padding:30px 0 0}
 .listhead{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .listhead h2{font-weight:700;font-size:14.5px;margin:0;letter-spacing:-.2px}
-.tabs{display:flex;border:var(--bd);background:#fff;box-shadow:var(--sh-sm)}
+.tabs{display:flex;border:var(--bd);background:#fff}
 .tabs button{background:none;border:none;font-size:14px;font-weight:700;padding:8px 18px}
 .tabs button+button{border-left:var(--bd)}
 .tabs button[aria-pressed=true]{background:var(--ink);color:var(--lime);font-weight:800}
@@ -150,69 +142,68 @@ main{padding:30px 0 0}
 /* ── 카드 ──────────────────────────────── */
 .cards{display:grid;gap:14px}
 .card{display:grid;grid-template-columns:1fr 180px;gap:18px;background:#fff;
-  border:var(--bd);box-shadow:var(--sh);padding:19px 22px;text-align:left;
+  border:var(--bd);box-shadow:var(--sh-sm);padding:19px 22px;text-align:left;
   font:inherit;color:inherit;width:100%}
-.card:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
-.card:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.card:hover{transform:translate(-1px,-1px);box-shadow:var(--sh)}
+.card:active{transform:translate(1px,1px);box-shadow:none}
 .card:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
 .cname{font-family:var(--disp);font-weight:800;font-size:19px;margin:0 0 5px;letter-spacing:-.4px;
   display:flex;align-items:center;gap:9px;line-height:1.15}
-.dot{width:15px;height:15px;border:var(--bd);flex:none;transform:rotate(-8deg)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
 .cname span{font-family:var(--f);font-size:12px;font-weight:700;color:var(--grey);
   letter-spacing:0;align-self:flex-end;padding-bottom:3px}
 .ctag{font-size:13.5px;margin:0 0 11px;color:#3A3A34}
-.cfacts{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;font-weight:700}
-.cfacts span{border:2px solid var(--ink);padding:2px 9px;background:#fff}
+.cfacts{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;font-weight:700;color:#3A3A34}
+.cfacts span{border:1.5px solid transparent;padding:2px 9px;background:#F1F2EA}
 .cfacts i{font-style:normal}
 .cfacts .hit{background:var(--lime)}
-.cfacts .off{border-style:dashed;color:var(--faint);border-color:#BFBFB6}
+.cfacts .off{background:none;border-style:dashed;color:var(--faint);border-color:#D2D2C8}
 .cright{text-align:right;display:flex;flex-direction:column;
   justify-content:space-between;gap:10px;white-space:nowrap}
 .cprice{font-family:var(--disp);font-weight:800;font-size:25px;line-height:1;letter-spacing:-.7px}
-.cprice span{background:linear-gradient(transparent 55%,var(--pink) 55%)}
+.cprice span{color:var(--ink)}
 .cprice em{font-style:normal;font-family:var(--f);font-size:11.5px;font-weight:700;
   color:var(--grey);display:block;margin-top:5px}
 .cscore{font-size:12.5px;font-weight:700}
 .cscore b{font-family:var(--disp);font-weight:800;font-size:17px;vertical-align:-1px}
-.unver{background:var(--ink)!important;color:var(--lime);border-color:var(--ink)!important;
-  transform:rotate(-2deg)}
+.unver{background:var(--ink)!important;color:var(--lime)}
 .empty{background:#fff;border:var(--bd);box-shadow:var(--sh);padding:44px 24px;
   text-align:center;font-weight:700}
 
 /* ── 지도 ──────────────────────────────── */
-.mapslot{border:var(--bd);box-shadow:var(--sh);background:#fff;margin-bottom:16px}
+.mapslot{border:var(--bd);box-shadow:var(--sh-sm);background:#fff;margin-bottom:16px}
 .mapcanvas{height:440px;display:flex;align-items:center;justify-content:center;
   background:var(--paper);
-  background-image:linear-gradient(#E2E7C8 1px,transparent 1px),
-    linear-gradient(90deg,#E2E7C8 1px,transparent 1px);
+  background-image:linear-gradient(#E6E4DA 1px,transparent 1px),
+    linear-gradient(90deg,#E6E4DA 1px,transparent 1px);
   background-size:38px 38px}
 .mapcanvas p{margin:0;font-size:14px;font-weight:700;text-align:center;line-height:1.8}
-.maphint{padding:13px 18px;border-top:var(--bd);font-size:12.5px;font-weight:700;
-  background:var(--bg)}
+.maphint{padding:11px 18px;border-top:var(--bd);font-size:12.5px;font-weight:700;
+  background:#fff;color:var(--grey)}
 .mk{background:#fff;border:var(--bd);padding:5px 11px;font-size:12.5px;font-weight:700;
-  font-family:var(--f);white-space:nowrap;box-shadow:var(--sh-sm);cursor:pointer;
+  font-family:var(--f);white-space:nowrap;cursor:pointer;
   display:flex;align-items:baseline;gap:8px;border-color:var(--mkc,#0B0B0B)}
-.mk:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.mk:hover{box-shadow:var(--sh-sm);z-index:10}
 .mk b{font-weight:800;font-size:13.5px}
 .mk span{color:var(--pink);font-weight:800}
 .mk-office{background:var(--ink);color:var(--lime);display:block;border-color:var(--ink)}
 
 /* ── 등록 밴드 ─────────────────────────── */
-.reportband{display:flex;flex-wrap:wrap;align-items:center;gap:24px 34px;background:var(--blue);
-  border:var(--bd);box-shadow:var(--sh);padding:28px 30px;margin:44px 0 70px;color:#fff}
+.reportband{display:flex;flex-wrap:wrap;align-items:center;gap:24px 34px;background:#fff;
+  border:var(--bd);box-shadow:var(--sh-sm);padding:28px 30px;margin:44px 0 70px;color:var(--ink)}
 .rb-text h3{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 9px;letter-spacing:-.4px}
-.rb-text > p{margin:0;font-size:14px;line-height:1.8}
-.fine{margin:14px 0 0;background:var(--lime);color:var(--ink);border:var(--bd);
-  padding:13px 15px;font-size:12.5px;font-weight:700;line-height:1.7}
-.fine b{background:var(--ink);color:var(--lime);padding:1px 6px}
+.rb-text > p{margin:0;font-size:14px;line-height:1.8;color:#3A3A34}
+.fine{margin:14px 0 0;background:var(--bg);color:var(--ink);border-left:4px solid var(--ink);
+  padding:12px 15px;font-size:12.5px;font-weight:600;line-height:1.7}
+.fine b{font-weight:800}
 .rb-text{flex:1 1 340px;min-width:0}
 .rb-act{flex:0 1 270px;min-width:210px;
   display:flex;flex-direction:column;justify-content:center;gap:13px}
 .rb-act a{display:block;text-align:center;background:var(--pink);color:#fff;
   text-decoration:none;font-weight:800;font-size:17px;padding:15px 10px;
   border:var(--bd);box-shadow:var(--sh)}
-.rb-act a:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
-.rb-note{margin:0;font-size:11.5px;line-height:1.7;opacity:.9}
+.rb-act a:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+.rb-note{margin:0;font-size:11.5px;line-height:1.7;color:var(--grey)}
 
 footer{border-top:var(--bd);background:var(--ink);color:var(--lime);padding:22px 0 40px;
   font-size:12.5px;font-weight:700}
@@ -247,10 +238,10 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap}
 .sbar a:first-child{background:var(--ink);color:var(--lime)}
 .sbar .kakao{background:var(--lime)}
 .sbar a:hover,.sbar button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
-.sect{background:#fff;border:var(--bd);box-shadow:var(--sh-sm);margin:16px 24px;
+.sect{background:#fff;border:var(--bd-soft);margin:16px 24px;
   padding:0 0 16px}
-.sect h3{font-weight:700;font-size:13px;margin:0 0 14px;letter-spacing:.2px;
-  background:var(--ink);color:var(--lime);padding:7px 16px 5px;letter-spacing:-.3px}
+.sect h3{font-weight:800;font-size:13px;margin:0 0 12px;
+  color:var(--grey);padding:14px 18px 0;letter-spacing:-.3px}
 .sect > *:not(h3){margin-left:18px;margin-right:18px}
 .kv{display:grid;grid-template-columns:88px 1fr;gap:9px 14px;font-size:13.5px;margin:0}
 .kv dt{font-weight:700;color:var(--grey)}
@@ -263,7 +254,7 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap}
   color:var(--grey);letter-spacing:0;margin-top:5px}
 .mid{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--grey)}
 .note{font-size:11.5px;color:var(--faint);margin-top:12px}
-.tip{background:var(--lime);border:var(--bd);padding:12px 14px;font-size:13px;
+.tip{background:var(--bg);border-left:4px solid var(--ink);padding:12px 14px;font-size:13px;
   margin-top:14px;line-height:1.7;font-weight:500}
 .tip b{background:var(--ink);color:var(--lime);padding:1px 7px;font-weight:700;
   margin-right:5px;font-size:12px}
@@ -275,7 +266,7 @@ footer .wrap{display:flex;gap:18px;flex-wrap:wrap}
 .rv{border-top:2px dashed #D5D5CC;padding-top:12px;margin-top:12px;font-size:13.5px;
   line-height:1.75}
 .rv:first-of-type{border-top:none;padding-top:0;margin-top:0}
-.rv.bad{background:#FFF0F6;border:2px solid var(--pink);padding:11px 13px;border-top:none}
+.rv.bad{background:#FCF1F5;border:2px solid var(--pink);padding:11px 13px;border-top:none}
 .rv .who{font-size:11.5px;font-weight:700;color:var(--faint);margin-top:4px}
 
 /* ── 룰렛 ──────────────────────────────── */
@@ -364,26 +355,25 @@ canvas{max-width:100%;height:auto}
 .cfacts .dist{background:var(--blue);color:#fff;border-color:var(--ink)}
 
 /* ── 인증 배지 ───────────────────────────── */
-.ver{background:var(--lime)!important;border-color:var(--ink)!important;
-  transform:rotate(-1.5deg)}
+.ver{background:var(--lime)!important}
 .ver::before{content:"\2713";font-weight:800;margin-right:4px}
 .ver-bar{margin-top:10px;background:var(--lime);border:var(--bd);padding:8px 11px;
   font-size:12px;font-weight:800;line-height:1.6}
 
 /* ── 제보 플로팅 버튼 ─────────────────────── */
 /* 등록 밴드가 페이지 맨 아래라 스크롤 전에는 안 보인다. 위에 띄워둔다 */
-/* top 값은 헤더(약 112px까지)와 히어로 도장(약 148px부터) 사이에 끼워 넣은 값이다.
-   문구를 길게 바꾸거나 글씨를 키우면 이 값도 같이 손봐야 한다 */
-.fab{position:fixed;top:96px;right:22px;z-index:45;border:var(--bd);
+/* top 값은 흐르는 띠 + 헤더(약 112px까지) 바로 아래에 맞춘 값이다.
+   띠나 헤더 높이를 바꾸면 이 값도 같이 손봐야 한다 */
+.fab{position:fixed;top:120px;right:22px;z-index:45;border:var(--bd);
   background:var(--lime);color:var(--ink);font-size:13.5px;font-weight:800;
-  padding:9px 14px;box-shadow:var(--sh);transform:rotate(-2deg);
+  padding:9px 14px;box-shadow:var(--sh-sm);
   transition:opacity .18s ease,transform .12s ease}
 .fab b{font-size:16px;font-weight:800;margin-left:4px}
-.fab:hover{transform:rotate(-2deg) translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
-.fab:active{transform:rotate(-2deg) translate(2px,2px);box-shadow:none}
+.fab:hover{transform:translate(-1px,-1px);box-shadow:var(--sh)}
+.fab:active{transform:translate(1px,1px);box-shadow:none}
 /* 등록 밴드가 이미 화면에 있으면, 상세나 룰렛이 열려 있으면 비켜준다 */
 .fab.off,.scrim.on ~ .fab,.modal.on ~ .fab{opacity:0;pointer-events:none}
-.fab.off{transform:rotate(-2deg) translateY(-10px)}
+.fab.off{transform:translateY(-10px)}
 /* 좁은 화면에선 카드가 폭을 다 쓴다. 떠 있으면 목록을 가리니
    히어로 도장과 같은 지점에서 같이 내린다 (그때는 등록 밴드까지 스크롤해서 간다) */
 @media (max-width:860px){
@@ -407,20 +397,19 @@ canvas{max-width:100%;height:auto}
 .tabs button em{font-style:normal;font-size:12px;margin-left:6px;opacity:.55}
 .tabs button[aria-pressed=true] em{opacity:1}
 .tabs button[data-tab=no][aria-pressed=true]{background:var(--pink);color:#fff}
-.card.no{background:#FFF2F6}
+.card.no{background:#FCF1F5}
 .card.no .dot{background:var(--pink)!important;border-radius:50%}
-.cfacts .nobadge{background:var(--pink);color:#fff;border-color:var(--ink)!important;
-  transform:rotate(-2deg)}
-.cfacts .warn{background:#FFD400}
+.cfacts .nobadge{background:var(--pink);color:#fff}
+.cfacts .warn{background:#F0D27A}
 .noreason{font-size:13.5px;margin:0 0 11px;background:#fff;border:2px solid var(--pink);
   padding:9px 12px;line-height:1.65}
 .noreason b{background:var(--pink);color:#fff;padding:1px 7px;font-size:12px;
   font-weight:700;margin-right:6px}
 .no-bar{margin-top:10px;background:var(--pink);color:#fff;border:var(--bd);padding:8px 11px;
   font-size:12px;font-weight:800;line-height:1.6}
-.warn-bar{margin-top:10px;background:#FFD400;border:var(--bd);padding:8px 11px;
+.warn-bar{margin-top:10px;background:#F0D27A;border:var(--bd);padding:8px 11px;
   font-size:12px;font-weight:800;line-height:1.6}
-.mk-no{background:#FFF2F6;border-color:var(--pink)!important}
+.mk-no{background:#FCF1F5;border-color:var(--pink)!important}
 .mk-no b{text-decoration:line-through}
 .mk-no span{color:var(--grey)}
 
@@ -428,21 +417,60 @@ canvas{max-width:100%;height:auto}
 footer .wrap{align-items:center}
 .credit{margin-left:auto;display:flex;align-items:center;gap:7px;white-space:nowrap}
 .credit b{background:var(--lime);color:var(--ink);border:2px solid var(--lime);
-  padding:3px 10px;font-weight:800;transform:rotate(-1.5deg);display:inline-block}
+  padding:3px 10px;font-weight:800;display:inline-block}
 @media (max-width:560px){
   .credit{margin-left:0;margin-top:4px}
 }
 
 .step .n.any{font-size:16px;font-weight:700;letter-spacing:0}
 
+/* ── 가봤어요? · 별점 입력 ───────────────── */
+.tabs button[data-tab=new][aria-pressed=true]{background:var(--lime);color:var(--ink)}
+.nsearch{display:flex;gap:6px;margin-left:auto}
+.nsearch[hidden]{display:none}
+.nsearch input{border:var(--bd);padding:8px 12px;font-size:14px;font-weight:600;width:200px;background:#fff}
+.nsearch .btn{padding:8px 14px}
+.card.new{grid-template-columns:1fr auto;padding:15px 20px}
+.card.new .cname{margin:0 0 8px}
+.ratecta{align-self:center;font-size:13px;font-weight:800;border:var(--bd);padding:7px 12px;background:var(--lime)}
+.card.new .cright{justify-content:center}
+.mk-new{background:var(--paper);border-style:dashed}
+.sorts[hidden]{display:none}
+.rate .rnote{font-size:12px;color:var(--grey);margin-top:8px;margin-bottom:0}
+.stars-in{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.stars-in .star{border:none;background:none;font-size:32px;line-height:1;padding:0 2px;color:#D9DCC9}
+.stars-in .star[aria-pressed=true]{color:var(--pink)}
+.stars-in .zero{margin-left:8px;font-size:12px;padding:6px 10px}
+.stars-in .zero[aria-pressed=true]{background:var(--pink);color:#fff}
+.more{margin-top:14px}
+.more summary{font-size:13px;font-weight:800;cursor:pointer;color:var(--grey)}
+.rrow{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.rrow > span{font-size:12px;font-weight:800;color:var(--grey)}
+.rrow .chip{padding:6px 11px;font-size:12.5px}
+#rateSend{margin-top:14px;width:calc(100% - 36px)}
+#rateSend:disabled{opacity:.4;box-shadow:none;cursor:default}
+@media (max-width:560px){
+  .nsearch{margin-left:0;width:100%}
+  .nsearch input{flex:1;width:auto}
+}
+
+/* ── 로그인 · 코멘트 ─────────────────────── */
+.authbtn{border:var(--bd);background:#FEE500;color:#191600;font-size:12.5px;font-weight:800;padding:6px 12px}
+.authbtn[hidden]{display:none}
+.flag + .authbtn{margin-left:10px}
+.rlabel{display:block;font-size:12px;font-weight:800;color:var(--grey);margin-top:14px}
+.rlabel em{font-style:normal;font-weight:600;color:var(--faint);margin-left:4px}
+.rate > textarea{display:block;width:calc(100% - 36px);margin-top:6px;border:var(--bd);padding:9px 11px;
+  font:inherit;font-size:13.5px;resize:vertical}
+@media (max-width:560px){ .authbtn{margin-left:auto} }
+
 /* ── 사옥 선택 ───────────────────────────── */
 .offrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-  padding-bottom:18px;margin-bottom:20px;border-bottom:var(--bd)}
-.offrow .olab{font-weight:700;font-size:13px;background:var(--ink);color:var(--lime);
-  padding:3px 9px 2px;margin-right:2px}
+  padding-bottom:18px;margin-bottom:20px;border-bottom:var(--bd-soft)}
+.offrow .olab{font-weight:800;font-size:13px;color:var(--grey);margin-right:4px}
 .offbtn{border:var(--bd);background:#fff;padding:8px 16px;font-size:13.5px;
   font-weight:800;box-shadow:var(--sh-sm)}
-.offbtn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.offbtn:hover{background:#F1F0E8}
 .offbtn[aria-pressed=true]{background:var(--ink);color:var(--lime)}
 .offbtn em{font-style:normal;font-weight:700;font-size:11.5px;opacity:.75;margin-left:5px}
 </style>
@@ -456,6 +484,7 @@ footer .wrap{align-items:center}
     <div class="logo">회식<b>각</b></div>
     <div class="logo-note">텔린이 구제용</div>
     <div class="flag" id="srcFlag">샘플 데이터</div>
+    <button class="authbtn" id="authBtn" hidden>카카오 로그인</button>
   </div>
 </header>
 
@@ -463,7 +492,6 @@ footer .wrap{align-items:center}
   <div class="wrap">
     <h1>오늘도<br><em>못 정했지</em><u>?</u></h1>
     <p class="herosub">예산이랑 조건만 찍어. 나머지는 룰렛이 정한다.</p>
-    <div class="stamp">고민 시간<b>0초</b></div>
   </div>
 </section>
 
@@ -523,6 +551,7 @@ footer .wrap{align-items:center}
     <div class="tabs" id="tabs">
       <button data-tab="rec" aria-pressed="true">추천<em id="tabRecN">0</em></button>
       <button data-tab="no" aria-pressed="false">비추<em id="tabNoN">0</em></button>
+      <button data-tab="new" aria-pressed="false">가봤어요?<em id="tabNewN"></em></button>
     </div>
     <h2 id="listTitle">후보</h2>
     <div class="sorts" id="sorts">
@@ -532,6 +561,10 @@ footer .wrap{align-items:center}
       <button data-sort="score" aria-pressed="false">평점순</button>
       <button data-sort="worst" aria-pressed="false" hidden>최악순</button>
     </div>
+    <form class="nsearch" id="nearSearch" hidden>
+      <input id="nearQ" type="search" placeholder="가게 이름으로 찾기" aria-label="가게 이름으로 찾기">
+      <button class="btn" type="submit">찾기</button>
+    </form>
   </div>
 
   <div class="mapslot" id="mapslot">
@@ -546,17 +579,17 @@ footer .wrap{align-items:center}
 
   <section class="reportband">
     <div class="rb-text">
-      <h3>좋았든 데였든 남기고 가</h3>
-      <p>여덟 칸이면 끝난다. 가게 이름, 업종, 인당 얼마 나왔는지,
-        룸, 주차, 시끄러운지, 별점, 그리고 다음 사람이 알아야 할 한마디.
-        30초 걸린다.</p>
+      <h3>가봤으면 별점 하나만 찍고 가</h3>
+      <p>주변 가게는 지도에서 알아서 찾아온다. 가본 곳 골라서 별 누르면 끝.
+        예산, 룸, 주차, 한줄평은 알면 눌러주고 모르면 그냥 넘어가도 된다.</p>
       <p class="fine">갈림길은 별점 하나다. <b>0점</b>은 별점도 아깝다, <b>1점</b>은 비추.
         둘 다 비추 명단으로 가고 룰렛에서 아예 빠지니까 아무도 안 걸린다.
         <b>쩝쩝박사</b>가 직접 먹어보고 확인한 곳에는 검증 도장이 붙는다.</p>
     </div>
     <div class="rb-act">
-      <a id="reportBtn" href="#" target="_blank" rel="noopener">맛집 · 비추 등록하기</a>
-      <p class="rb-note">룸이랑 주차 모르면 "잘 모르겠음" 고르면 돼.
+      <a id="reportBtn" href="#tabs">가본 곳 별점 남기기</a>
+      <p class="rb-note">카카오 로그인은 한 사람 한 표를 위해서만 쓴다. 이름·프로필은 받지 않고 화면에도 안 나온다.
+        같은 가게를 다시 평가하면 내 이전 평가를 덮어쓴다.
         별점을 1점 이하로 줄 거면 아쉬운 점 한 줄은 꼭 써줘. 그게 제일 중요하다.</p>
     </div>
   </section>
@@ -594,7 +627,7 @@ footer .wrap{align-items:center}
   </div>
 </div>
 
-<button class="fab" id="fabReport">맛집 제보<b>＋</b></button>
+<button class="fab" id="fabReport">별점 남기기<b>★</b></button>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -602,13 +635,13 @@ footer .wrap{align-items:center}
    설정 — 이 부분만 채우면 됩니다
    ═══════════════════════════════════════════════════ */
 const CONFIG = {
-  FORM_URL:   "https://forms.gle/ytPhLie5gwtsMYHj9",   // 구글 폼 공유 링크
+  FORM_URL:   "https://forms.gle/ytPhLie5gwtsMYHj9",   // 옛 등록 폼. 별점은 이제 사이트에서 바로 받아서 화면에는 안 쓴다
   SHEET_ID:   "1bUq5KJ-nG5P-e7ES5xT06Yzxm7TALLIJpwFCYDgUWiM",   // 폼 응답 시트
   SHEET_NAME: "설문지 응답 시트1",   // 응답 시트 하단 탭 이름
   KAKAO_KEY:  "20002404caeec65787ea2d0c19935431",   // 카카오 JavaScript 키
   /* 공유 링크에 쓸 주소. 비워두면 지금 열려 있는 주소를 그대로 씁니다.
      이 도메인이 콘솔 [제품 링크 관리] > [웹 도메인]에 등록돼 있어야 합니다 */
-  SITE_URL:   "https://ssohyunkim.github.io/hoesikgak/",
+  SITE_URL:   "https://www.hoesikgak.com/",
   /* 카카오톡 카드 공유. false 로 두면 OS 공유 시트와 링크 복사만 씁니다.
      ("잘못된 요청"이 뜨면 도메인 등록 전이라는 뜻이니 false 로 내려두세요) */
   KAKAO_SHARE: true,
@@ -622,7 +655,21 @@ const CONFIG = {
       lat:37.5443, lng:126.9515 },
   ],
   DEFAULT_OFFICE: "보라매",
-  SEARCH_RADIUS: 6000    // 가게 이름을 찾을 반경(m). 사옥 기준, 최대 20000
+  SEARCH_RADIUS: 6000,   // 가게 이름을 찾을 반경(m). 사옥 기준, 최대 20000
+
+  /* ── 평가 방식 ──────────────────────────────
+     가게 목록은 카카오 지도에서 기준 위치(사옥 또는 내 위치) 주변을 그때그때 검색한다.
+     사람이 남기는 건 별점(필수)과 몇 가지 선택 정보뿐이고, 시트의 RATING_SHEET 탭에 쌓인다.
+     API_URL 은 worker/ 를 Cloudflare 에 배포한 주소. 카카오 로그인과 별점 저장을 맡는다.
+     별점은 카카오 로그인한 사람만 남길 수 있다 (한 사람 한 표).
+     평가 탭에 이관 행(작성자 legacy-*)이 생기면 위의 폼 응답 시트는 더 읽지 않는다. */
+  RATING_SHEET: "평가",
+  API_URL:      "",    // 예: https://hoesikgak-api.<계정>.workers.dev  (비워두면 로그인 없이 익명으로 받는다)
+  /* 로그인 없이 쓸 때 별점을 받는 구글 폼. 폼의 "미리 채워진 링크"를 그대로 붙여넣는다.
+     만드는 법은 tools/rating-form.md. 폼 응답 탭 이름을 RATING_SHEET 와 같게 바꿔둔다 */
+  RATE_FORM:    "https://docs.google.com/forms/d/e/1FAIpQLScijsTtuJGWwL3OvHnxBuPdcBRyZTUFDrCPhxtRtOllJyKrcQ/viewform?usp=pp_url&entry.989536997=%EC%B9%B4%EC%B9%B4%EC%98%A4ID&entry.7482158=%EB%A7%A4%EC%9E%A5%EB%AA%85&entry.143308170=%EC%97%85%EC%A2%85&entry.1256497789=%EC%B9%B4%EC%B9%B4%EC%98%A4%EB%B6%84%EB%A5%98&entry.494993945=%EC%A3%BC%EC%86%8C&entry.1261599131=%EC%9C%84%EB%8F%84&entry.187366367=%EA%B2%BD%EB%8F%84&entry.1586533610=%EB%B3%84%EC%A0%90&entry.240415988=%EC%9D%B8%EB%8B%B9%EC%98%88%EC%82%B0&entry.1548194720=%EB%A3%B8&entry.657376056=%EC%A3%BC%EC%B0%A8&entry.87630442=%EC%86%8C%EC%9D%8C&entry.1208226963=%EC%A0%81%EC%A0%95%EC%9D%B8%EC%9B%90&entry.134488005=%ED%95%9C%EC%A4%84%ED%8F%89&entry.483133536=%EC%9E%91%EC%84%B1%EC%9E%90&entry.430222415=%EA%B8%B0%EC%A4%80&entry.1175260167=%EC%9A%94%EC%B2%ADID",
+  NEAR_RADIUS:  1500,    // 기준 위치에서 이 거리(m) 안의 가게만 목록에 올린다
+  ROULETTE_MIN: 3        // 룰렛에는 평균 별점이 이 점수 이상인 곳만 올린다
 };
 
 /* ═══════════════════════════════════════════════════
@@ -810,6 +857,7 @@ const SAMPLE=[
 
 /* 샘플도 시트 데이터와 같은 형태로 맞춘다 */
 SAMPLE.forEach(p=>{
+  p.id="s"+p.id; p.kakaoId="";
   p.office="보라매";
   p.fitLabel=`${p.fitMin}~${p.fitMax}명`;
   p.reviews=[];
@@ -823,13 +871,22 @@ SAMPLE.forEach(p=>{
 });
 
 let DATA=SAMPLE;
+let SAMPLE_MODE=true;      /* 샘플 좌표는 사옥 근처가 아니라서 거리 대신 office 값으로 거른다 */
+let BASE_DATA=SAMPLE;      /* 평가 탭이 아닌 곳(샘플·옛 폼 응답)에서 온 가게 */
+let RATINGS=[];            /* 평가 탭의 행들. 내가 방금 남긴 것도 여기 붙는다 */
 
-const CAT={"고기":"#FF2E93","한식":"#B8FF29","중식":"#FF7A00","일식":"#2B5BFF",
-  "양식":"#FFD400","이자카야":"#8B5CF6","곱창":"#00D9C0","해산물":"#4ADEDE"};
+const CAT={"고기":"#E5487F","한식":"#8DB84A","중식":"#E8833A","일식":"#4062D8",
+  "양식":"#E0B83A","이자카야":"#8E6BD8","곱창":"#2AAE9A","해산물":"#5BB8C9"};
 
 /* 지금 보고 있는 사옥. null 이면 전체 */
 const OFFS=CONFIG.OFFICES;
-function officeOf(key){ return OFFS.find(o=>o.key===key)||null; }
+/* 기준 위치는 사옥 프리셋 또는 "me"(내 위치). 내 위치는 위치를 잡은 뒤에만 고를 수 있다 */
+let myPos=null;
+const ME={key:"me",name:"내 위치",lat:0,lng:0};
+function officeOf(key){
+  if(key==="me") return myPos?ME:null;
+  return OFFS.find(o=>o.key===key)||null;
+}
 let OFFICE=officeOf(CONFIG.DEFAULT_OFFICE)||OFFS[0];
 
 const BMAX=150000;          /* 슬라이더 오른쪽 끝. 여기 두면 상한 없음 */
@@ -855,14 +912,47 @@ const won=n=>(n||0).toLocaleString("ko-KR");
 const hasRoom=p=>p.rooms===null?null:p.rooms.length>0;
 const mapQuery=p=>encodeURIComponent(p.addr||`${p.name} ${p.station||""}`);
 
-/* 등록 폼 링크 */
-(function(){
-  const b=$("#reportBtn");
-  if(CONFIG.FORM_URL){ b.href=CONFIG.FORM_URL; return; }
-  b.removeAttribute("href");
-  b.textContent="등록 폼이 아직 연결되지 않았습니다";
-  b.style.cssText="background:#E6E6DE;color:#8A8A82;cursor:default;font-size:15px";
+/* 시트·카카오에서 온 글자는 그대로 innerHTML 에 들어간다. 평가 주소는 누구나 쓸 수 있으니 꼭 막는다 */
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const unesc=v=>String(v??"").replace(/&(amp|lt|gt|quot|#39);/g,(_,k)=>({amp:"&",lt:"<",gt:">",quot:'"',"#39":"'"}[k]));
+function sanitize(p){
+  ["name","branch","cat","tagline","noReason","addr","loc","station","booking","hours","phone","tip","noise","fitLabel"]
+    .forEach(k=>{ if(typeof p[k]==="string") p[k]=esc(p[k]); });
+  p.tags=(p.tags||[]).map(esc);
+  p.menus=(p.menus||[]).map(m=>m.map(esc));
+  p.second=(p.second||[]).map(m=>m.map(esc));
+  p.rooms=p.rooms&&p.rooms.map(r=>[esc(r[0]),r[1]]);
+  p.reviews=(p.reviews||[]).map(r=>({...r,txt:esc(r.txt),who:esc(r.who)}));
+  return p;
+}
+
+/* 브라우저마다 한 번 만드는 익명 ID. 같은 사람이 같은 가게를 다시 평가하면 마지막 것만 센다 */
+const store={
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+/* 카카오 로그인 세션. Worker 가 준 토큰과 익명 uid(카카오 회원번호의 HMAC)만 들고 있다 */
+const SESSION_KEY="hoesik.session";
+/* 별점 폼의 "미리 채워진 링크"에서 보낼 주소와 질문별 entry 번호를 읽는다.
+   미리 채울 때 각 칸에 질문 이름 그대로(카카오ID, 매장명 …) 적어두면 그 값으로 짝을 맞춘다 */
+const RATE_FORM=(()=>{
+  const u=CONFIG.RATE_FORM; if(!u) return null;
+  try{
+    const url=new URL(u), entries={};
+    url.searchParams.forEach((v,k)=>{ if(/^entry\.\d+$/.test(k)) entries[v.trim()]=k; });
+    const action=url.origin+url.pathname.replace(/\/(viewform|formResponse).*$/,"")+"/formResponse";
+    if(!entries["카카오ID"]||!entries["별점"]){ console.warn("별점 폼 링크에 카카오ID·별점 칸이 없습니다"); return null; }
+    return {action,entries};
+  }catch(e){ console.warn("별점 폼 링크를 읽지 못했습니다:",e.message); return null; }
 })();
+/* API_URL 이 있으면 카카오 로그인 모드, 없으면 브라우저마다 만드는 익명 ID 로 받는다 */
+const LOGIN=()=>!!CONFIG.API_URL;
+const UID=(()=>{ let u=store.get("hoesik.uid",""); if(!u){ u="u"+Math.random().toString(36).slice(2,10)+Date.now().toString(36); store.set("hoesik.uid",u);} return u; })();
+const whoAmI=()=>LOGIN()?(session()||{}).uid:UID;
+function session(){
+  const s=store.get(SESSION_KEY,null);
+  return s&&s.token&&s.exp*1000>Date.now()?s:null;
+}
 
 /* ═══════════════════════════════════════════════════
    구글 시트 읽기 — 25개 열, 필수는 8개
@@ -965,7 +1055,7 @@ function rowToPlace(o,i){
   const rec=recOf({rated,score});
   const noReason=T(pick(o,"아쉬운점","후기"));
   return {
-    id:1000+i, name:T(o["매장명"]), branch:T(o["지점"]), cat:T(o["업종"])||"기타",
+    id:"L"+i, kakaoId:"", name:T(o["매장명"]), branch:T(o["지점"]), cat:T(o["업종"])||"기타",
     office:T(pick(o,"사옥","오피스")),
     tagline:T(o["한줄설명"]), tags:listOf(o["태그"]),
     budgetDrink:numOf(pick(o,"인당예산","인당예산_술포함"),0),
@@ -1034,26 +1124,154 @@ function mergeDupes(list){
   return [...map.values()];
 }
 
+/* 시트 탭 하나를 {열이름:값} 목록으로. 탭이 없거나 비었으면 [] */
+async function sheetRows(name){
+  const url=`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}`
+    +`/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}`;
+  const res=await fetch(url);
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const rows=parseCSV(await res.text());
+  if(rows.length<2) return [];
+  const head=rows[0].map(normHead);
+  return rows.slice(1).map(r=>{ const o={}; head.forEach((h,i)=>o[h]=r[i]||""); return o; });
+}
+
+/* ═══════════════════════════════════════════════════
+   평가 탭 → 가게. 카카오ID로 묶는다
+     열: 타임스탬프 카카오ID 매장명 업종 카카오분류 주소 위도 경도 별점 인당예산
+         룸 주차 소음 적정인원 한줄평 작성자 기준 검증 영업상태 요청ID
+   같은 작성자가 같은 가게를 여러 번 남기면 마지막 행만 센다.
+   선택 정보(예산·룸·주차·소음·인원)는 여러 사람이 남긴 값 중 가장 많은 쪽을 쓴다.
+   ═══════════════════════════════════════════════════ */
+function mode(vals){
+  const c=new Map(); let best="",bn=0;
+  vals.filter(v=>T(v)).forEach(v=>{ const n=(c.get(v)||0)+1; c.set(v,n); if(n>=bn){bn=n;best=v;} });
+  return best;
+}
+function median(nums){
+  const a=nums.filter(n=>n>0).sort((x,y)=>x-y);
+  if(!a.length) return 0;
+  const m=a.length>>1; return a.length%2?a[m]:Math.round((a[m-1]+a[m])/2/1000)*1000;
+}
+/* 카카오 분류 → 사이트 업종. tools/migrate-legacy.mjs 와 같은 규칙 */
+function catOf(kcat){
+  const rules=[[/곱창|막창|대창/,"곱창"],[/육류|고기|삼겹|갈비|족발|보쌈|오리|닭갈비/,"고기"],
+    [/일본식주점|이자카야/,"이자카야"],[/해물|생선|회|조개|장어|대게/,"해산물"],
+    [/일식|초밥|돈까스|라멘|우동/,"일식"],[/중식|중국|양꼬치|훠궈|마라/,"중식"],
+    [/양식|이탈리안|스테이크|피자|파스타|프랑스/,"양식"],[/한식|한정식|국밥|찌개|샤브/,"한식"]];
+  for(const [re,c] of rules) if(re.test(kcat||"")) return c;
+  return "기타";
+}
+function nearestOffice(lat,lng){
+  let best="",bd=Infinity;
+  OFFS.forEach(o=>{ const d=distOf(lat,lng,o.lat,o.lng); if(d<bd){bd=d;best=o.key;} });
+  return bd<=CONFIG.NEAR_RADIUS*2?best:"";
+}
+function aggregate(rows){
+  const groups=new Map();
+  rows.forEach(r=>{
+    const id=T(r["카카오ID"]).replace(/\.0+$/,"");
+    if(!/^\d+$/.test(id)) return;
+    if(!groups.has(id)) groups.set(id,new Map());
+    groups.get(id).set(T(r["작성자"])||("row"+Math.random()), r);   /* 작성자별 마지막 행 */
+  });
+  const out=[];
+  groups.forEach((byAuthor,id)=>{
+    const g=[...byAuthor.values()], last=g[g.length-1];
+    if(g.some(r=>T(r["영업상태"])==="폐업")) return;
+    const scores=g.map(r=>starScore(r["별점"])).filter(v=>v!==null);
+    const rated=scores.length>0;
+    const score=rated?scores.reduce((a,b)=>a+b,0)/scores.length:0;
+    const bad=r=>{ const s=starScore(r["별점"]); return s!==null&&s<=BAD_SCORE; };
+    const roomTxt=mode(g.map(r=>T(r["룸"])));
+    const hc=parseHead(mode(g.map(r=>T(r["적정인원"]))));
+    const lat=+T(last["위도"])||null, lng=+T(last["경도"])||null;
+    const recNo=g.filter(bad).length, recYes=g.length-recNo;
+    const p={
+      id:"k"+id, kakaoId:id, name:T(last["매장명"]), branch:"",
+      cat:T(mode(g.map(r=>T(r["업종"]))))||catOf(last["카카오분류"]),
+      office:lat&&lng?nearestOffice(lat,lng):T(last["기준"]),
+      tagline:"", tags:[], budgetDrink:median(g.map(r=>numOf(r["인당예산"],0))), budgetFood:0, menus:[],
+      fitMin:hc.min, fitMax:hc.max, fitLabel:hc.label, capacity:hc.cap,
+      rooms:!roomTxt?null:(["없음","x","불가","0"].includes(roomTxt.toLowerCase())?[]
+        :listOf(roomTxt).map(s=>[s,1])),
+      parking:tri3(mode(g.map(r=>T(r["주차"])))), noise:mode(g.map(r=>T(r["소음"]))),
+      station:"", walk:0, loc:"", isAddr:true, addr:T(last["주소"]),
+      booking:"", hours:"", phone:"", score, rated,
+      verified:g.some(r=>VERIFY.includes(T(r["검증"]).toLowerCase())),
+      reviews:g.filter(r=>T(r["한줄평"])).reverse().map(r=>({txt:T(r["한줄평"]),bad:bad(r),who:""})),
+      visits:g.length, tip:"", second:[], lat, lng
+    };
+    p.rec=recOf(p);
+    /* 평균이 높으면 후보로 남기고, 비추 표는 경고로만 보여준다 (옛 mergeDupes 와 같은 규칙) */
+    p.recYes=recYes; p.recNo=recNo;
+    p.noReason=p.rec?"":((g.filter(bad).map(r=>T(r["한줄평"])).filter(Boolean).pop())||"");
+    p.tagline=(p.reviews.find(r=>!r.bad)||{}).txt||"";
+    out.push(sanitize(p));
+  });
+  return out;
+}
+
+/* 방금 남긴 평가는 시트에 반영되기까지 몇 분 걸릴 수 있다. 그동안은 이 브라우저에 들고 있는다 */
+const PENDING_KEY="hoesik.pending";
+function mergePending(rows){
+  const seen=new Set(rows.map(r=>T(r["요청ID"])).filter(Boolean));
+  const keep=store.get(PENDING_KEY,[]).filter(r=>!seen.has(r["요청ID"])&&Date.now()-r._t<3*864e5);
+  store.set(PENDING_KEY,keep);
+  return rows.concat(keep);
+}
+/* 이관 전에는 옛 폼 데이터와 새 평가가 같은 가게를 가리킬 수 있다.
+   옛 가게의 카카오ID는 지도에서 이름으로 찾은 뒤에야 알 수 있어서, 찾고 나면 다시 부른다 */
+function combine(b,a){
+  const p={...b};
+  const nb=b.rated?b.visits:0, na=a.rated?a.visits:0;
+  if(na){ p.score=(b.score*nb+a.score*na)/(nb+na); p.rated=true; }
+  if(!p.budgetDrink) p.budgetDrink=a.budgetDrink;
+  if(p.rooms===null) p.rooms=a.rooms;
+  if(p.parking===null) p.parking=a.parking;
+  if(!p.noise) p.noise=a.noise;
+  if(!p.fitMin&&a.fitMin){ p.fitMin=a.fitMin; p.fitMax=a.fitMax; p.fitLabel=a.fitLabel; p.capacity=a.capacity; }
+  p.reviews=a.reviews.concat(b.reviews);
+  p.recYes=b.recYes+a.recYes; p.recNo=b.recNo+a.recNo;
+  p.visits=b.visits+a.visits; p.verified=b.verified||a.verified;
+  p.rec=recOf(p); p.noReason=p.rec?"":(a.noReason||b.noReason);
+  p.id=a.id;                       /* 방금 평가한 가게를 "k"+ID 로 다시 열 수 있게 */
+  return p;
+}
+function rebuild(){
+  const agg=aggregate(RATINGS), byK=new Map(agg.map(p=>[p.kakaoId,p]));
+  const base=BASE_DATA.map(b=>{
+    const a=b.kakaoId&&byK.get(b.kakaoId);
+    if(!a) return b;
+    byK.delete(b.kakaoId);
+    return combine(b,a);
+  });
+  DATA=base.concat([...byK.values()]);
+}
+
+/* 평가 탭을 먼저 읽는다. 이관 행이 있으면 옛 폼 응답은 건너뛴다.
+   둘 다 못 읽으면 샘플로 돌아간다 */
 async function loadSheet(){
   if(!CONFIG.SHEET_ID) return false;
-  const url=`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}`
-    +`/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}`;
+  let ratings=[], migrated=false, ok=false;
   try{
-    const res=await fetch(url);
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const rows=parseCSV(await res.text());
-    if(rows.length<2) throw new Error("행이 없습니다");
-    const head=rows[0].map(normHead);
-    const list=rows.slice(1).map(r=>{
-      const o={};head.forEach((h,i)=>o[h]=r[i]||"");return o;
-    }).filter(o=>T(o["매장명"]) && T(o["영업상태"])!=="폐업");
-    if(!list.length) throw new Error("유효한 행이 없습니다");
-    DATA=mergeDupes(list.map(rowToPlace));
-    return true;
-  }catch(e){
-    console.warn("시트를 읽지 못해 샘플 데이터를 사용합니다:",e.message);
-    return false;
-  }
+    ratings=await sheetRows(CONFIG.RATING_SHEET);
+    migrated=ratings.some(r=>/^legacy/.test(T(r["작성자"])));
+    ok=true;
+  }catch(e){ console.warn("평가 탭을 읽지 못했습니다:",e.message); }
+  RATINGS=mergePending(ratings);
+  if(!migrated){
+    try{
+      const list=(await sheetRows(CONFIG.SHEET_NAME))
+        .filter(o=>T(o["매장명"]) && T(o["영업상태"])!=="폐업");
+      BASE_DATA=mergeDupes(list.map(rowToPlace)).map(sanitize);
+      ok=true;
+    }catch(e){ console.warn("폼 응답 시트를 읽지 못했습니다:",e.message); }
+  } else BASE_DATA=[];
+  if(!ok){ BASE_DATA=SAMPLE; RATINGS=mergePending([]); rebuild(); return false; }
+  SAMPLE_MODE=false;
+  rebuild();
+  return true;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1076,7 +1294,7 @@ function toast(msg){
   toastT=setTimeout(()=>t.classList.remove("on"),2800);
 }
 
-/* SDK는 공유를 처음 누를 때만 받는다. 첫 화면을 느리게 하지 않는다 */
+/* SDK는 공유나 로그인을 처음 누를 때만 받는다. 첫 화면을 느리게 하지 않는다 */
 let sdkState=null;                 /* null=미시도, "loading", true, false */
 const sdkWaiting=[];
 function withKakao(cb){
@@ -1087,7 +1305,7 @@ function withKakao(cb){
     sdkState=ok;
     while(sdkWaiting.length) sdkWaiting.shift()(ok);
   }
-  if(!CONFIG.KAKAO_KEY||!CONFIG.KAKAO_SHARE) return settle(false);
+  if(!CONFIG.KAKAO_KEY) return settle(false);
   sdkState="loading";
   const s=document.createElement("script");
   /* integrity 와 crossOrigin 은 src 보다 먼저 걸어야 한다.
@@ -1097,7 +1315,7 @@ function withKakao(cb){
     try{
       if(!window.Kakao) return settle(false);
       if(!Kakao.isInitialized()) Kakao.init(CONFIG.KAKAO_KEY);
-      settle(!!(Kakao.Share&&Kakao.Share.sendDefault));
+      settle(true);
     }catch(e){ console.warn("카카오 SDK 초기화 실패:",e); settle(false); }
   };
   s.onerror=()=>{ console.warn("카카오 SDK를 불러오지 못했습니다"); settle(false); };
@@ -1114,7 +1332,7 @@ const OG_IMAGE=SITE_URL.replace(/\/?$/,"/")+"og.png";
 function share({text,url,button,kakao}){
   const body=cut(text);
   withKakao(ok=>{
-    if(ok){
+    if(ok&&CONFIG.KAKAO_SHARE&&Kakao.Share&&Kakao.Share.sendDefault){
       try{
         Kakao.Share.sendDefault(kakao||{
           objectType:"text", text:body,
@@ -1221,7 +1439,9 @@ function initMap(){
     findAllOffices(()=>{
       map.setCenter(new kakao.maps.LatLng(OFFICE.lat,OFFICE.lng));
       mapReady=true;
-      lookupCoords(()=>drawMarkers());
+      /* 옛 데이터의 카카오ID를 알게 됐으니 새 평가와 합친다 */
+      lookupCoords(()=>{ rebuild(); drawOffices(); render(); });
+      if(S.tab==="new") loadNear();
     });
   });
 }
@@ -1288,13 +1508,13 @@ function byName(p,tick){
       p.addr=res[0].road_address_name||res[0].address_name||"";
       p.foundName=res[0].place_name||"";
       p.phone=p.phone||res[0].phone||"";
+      p.kakaoId=p.kakaoId||res[0].id||"";   /* 옛 폼 데이터에도 별점을 남길 수 있게 */
     }
     tick();
   },opt);
 }
 
 /* ── 내 위치 ─────────────────────────────────── */
-let myPos=null;
 function distOf(a,b,c,d){
   const t=Math.PI/180, dla=(c-a)*t, dlo=(d-b)*t;
   const h=Math.sin(dla/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin(dlo/2)**2;
@@ -1303,6 +1523,7 @@ function distOf(a,b,c,d){
 const myDist=p=>(myPos&&p.lat&&p.lng)?distOf(myPos.lat,myPos.lng,p.lat,p.lng):null;
 const fmtDist=d=>d<1000?`${Math.round(d/10)*10}m`:`${(d/1000).toFixed(1)}km`;
 
+/* 위치를 잡으면 기준 위치를 "내 위치"로 바꾼다. 사옥 버튼을 누르면 언제든 돌아갈 수 있다 */
 function findMe(){
   const b=$("#myLoc");
   if(!navigator.geolocation){ b.textContent="위치 지원 안 됨"; return; }
@@ -1310,30 +1531,14 @@ function findMe(){
   navigator.geolocation.getCurrentPosition(
     pos=>{
       myPos={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      ME.lat=myPos.lat; ME.lng=myPos.lng;
       b.textContent="내 위치";b.dataset.on="true";
-      const near=document.querySelector('[data-sort="near"]');
-      if(near) near.hidden=false;
-      if(mapReady){
-        map.setCenter(new kakao.maps.LatLng(myPos.lat,myPos.lng));
-        map.setLevel(4);
-      }
-      /* 가장 가까운 사옥으로 자동 전환 (30km 안일 때만) */
-      if(S.office){
-        let best=null,bd=Infinity;
-        OFFS.forEach(o=>{const d=distOf(myPos.lat,myPos.lng,o.lat,o.lng);
-          if(d<bd){bd=d;best=o;}});
-        if(best&&bd<30000&&best.key!==S.office){
-          S.office=best.key;OFFICE=best;drawOffices();
-          $("#mapCount").textContent=`${best.key} 사옥이 가장 가까워서 그쪽으로 바꿨어`;
-        }
-      }
       S.sort="near";
-      [...$("#sorts").children].forEach(x=>
-        x.setAttribute("aria-pressed",String(x.dataset.sort==="near")));
-      render();
+      setOffice("me");
     },
     err=>{
       b.textContent="내 위치";
+      drawOffices();
       $("#mapCount").textContent = err.code===1
         ? "위치 권한이 거부됐어. 주소창 왼쪽 자물쇠에서 허용해줘."
         : "위치를 못 찾았어. 잠시 뒤 다시 눌러줘. (https 주소에서만 동작해)";
@@ -1349,7 +1554,7 @@ function drawMarkers(){
   const bounds=new kakao.maps.LatLngBounds();
   const opos=new kakao.maps.LatLng(OFFICE.lat,OFFICE.lng);
   bounds.extend(opos);
-  overlays.push(new kakao.maps.CustomOverlay({map,position:opos,
+  if(OFFICE!==ME) overlays.push(new kakao.maps.CustomOverlay({map,position:opos,
     content:`<div class="mk mk-office">${OFFICE.name}</div>`,yAnchor:1}));
   if(myPos){
     const mp=new kakao.maps.LatLng(myPos.lat,myPos.lng);
@@ -1360,29 +1565,41 @@ function drawMarkers(){
   list.forEach(p=>{
     const pos=new kakao.maps.LatLng(p.lat,p.lng);
     const el=document.createElement("div");
-    el.className="mk"+(p.rec===false?" mk-no":"");
+    el.className="mk"+(p.rec===false?" mk-no":"")+(p.rated?"":" mk-new");
     el.style.setProperty("--mkc",CAT[p.cat]||"#0A8C76");
-    el.innerHTML=`<b>${p.name}</b><span>${p.rec===false?"비추":won(p.budgetDrink)}</span>`;
+    const tag=p.rec===false?"비추":p.budgetDrink?won(p.budgetDrink)
+      :p.rated?`★${p.score.toFixed(1)}`:(p.dist?fmtDist(p.dist):"");
+    el.innerHTML=`<b>${p.name}</b>${tag?`<span>${tag}</span>`:""}`;
     el.onclick=()=>openSheet(p.id);
     overlays.push(new kakao.maps.CustomOverlay({map,position:pos,content:el,
       yAnchor:1.1,clickable:true}));
     bounds.extend(pos);
   });
   const miss=filtered().length-list.length;
-  const noTab=S.tab==="no";
-  $("#mapCount").textContent=list.length
+  const noTab=S.tab==="no", newTab=S.tab==="new";
+  $("#mapCount").textContent=newTab
+    ? (NEAR.loading?"주변 가게를 찾는 중입니다":`${OFFICE.name} 주변 아직 평가 없는 ${list.length}곳. 핀을 누르면 별점을 남길 수 있습니다.`)
+    : list.length
     ? `${noTab?"비추":"후보"} ${list.length}곳을 표시했습니다. 핀을 누르면 상세가 열립니다.`
       +(miss?` 위치를 못 찾은 ${miss}곳은 목록에서 확인하세요.`:"")
     : (noTab?"비추로 올라온 곳이 없습니다."
             :"표시할 후보가 없습니다. 조건을 넓혀보세요.");
-  if(list.length&&!myPos) map.setBounds(bounds,40,40,40,40);
+  if(list.length&&OFFICE!==ME) map.setBounds(bounds,40,40,40,40);
+  else if(OFFICE===ME){ map.setCenter(new kakao.maps.LatLng(ME.lat,ME.lng)); map.setLevel(5); }
 }
 
 /* ═══════════════════════════════════════════════════
    필터와 목록
    ═══════════════════════════════════════════════════ */
+/* 기준 위치 o 에서 반경 안인가. 좌표를 아직 못 찾은 옛 데이터는 등록된 사옥 값으로 본다 */
+function nearTo(o,p){
+  if(!o) return true;
+  if(!SAMPLE_MODE&&p.lat&&p.lng) return distOf(o.lat,o.lng,p.lat,p.lng)<=CONFIG.NEAR_RADIUS;
+  return o!==ME&&p.office===o.key;
+}
+const inBase=p=>!S.office||nearTo(OFFICE,p);
 function matches(p){
-  if(S.office && p.office!==S.office) return false;
+  if(!inBase(p)) return false;
   /* 비추 명단은 피하려고 보는 목록이라 예산·인원·필수조건을 걸지 않는다 */
   if(S.tab==="no") return p.rec===false;
   if(p.rec===false) return false;
@@ -1409,6 +1626,7 @@ function fitScore(p){
   return s;
 }
 function filtered(){
+  if(S.tab==="new") return NEAR.list;
   const l=DATA.filter(matches);
   if(S.sort==="near"&&myPos)
     l.sort((a,b)=>(myDist(a)??Infinity)-(myDist(b)??Infinity));
@@ -1425,31 +1643,85 @@ function recList(){
   S.tab="rec"; if(s==="worst") S.sort="fit";
   const l=filtered(); S.tab=t; S.sort=s; return l;
 }
+const byId=id=>DATA.find(x=>x.id===id)||NEAR.list.find(x=>x.id===id);
+
+/* ═══════════════════════════════════════════════════
+   가봤어요? — 기준 위치 주변에서 아직 평가가 없는 가게를 카카오에서 바로 찾는다
+   시트에 미리 깔아둘 필요가 없다. 사옥이든 내 위치든 같은 방식이다
+   ═══════════════════════════════════════════════════ */
+const NEAR={key:"",list:[],loading:false,q:""};
+/* 회식으로 갈 법한 종류를 더 찾는 검색어. 음식점 카테고리 검색만으로는 가까운 45곳에서 끊긴다 */
+const NEAR_KEYWORDS=["고기집","곱창","이자카야","횟집","중식","술집","한식"];
+const NEAR_SKIP=["카페","간식","제과","베이커리","디저트","아이스크림","패스트푸드","햄버거",
+  "분식","김밥","떡볶이","도시락","샌드위치","토스트","샐러드","푸드코트","구내식당"];
+function nearPlace(d,o){
+  const lat=+d.y, lng=+d.x;
+  return sanitize({
+    id:"k"+d.id, kakaoId:d.id, name:d.place_name, branch:"", cat:catOf(d.category_name), kcat:d.category_name,
+    office:o.key, tagline:"", tags:[], budgetDrink:0, budgetFood:0, menus:[],
+    fitMin:null, fitMax:null, fitLabel:"", capacity:Infinity, rooms:null, parking:null, noise:"",
+    station:"", walk:0, loc:"", isAddr:true, addr:d.road_address_name||d.address_name||"",
+    booking:"", hours:"", phone:d.phone||"", score:0, rated:false, rec:true, recYes:0, recNo:0,
+    noReason:"", verified:false, reviews:[], visits:0, tip:"", second:[],
+    lat, lng, dist:distOf(o.lat,o.lng,lat,lng)
+  });
+}
+function loadNear(force){
+  const o=OFFICE, key=o.key+"|"+o.lat+"|"+NEAR.q;
+  if(!places){ NEAR.list=[]; return; }
+  if(!force&&NEAR.key===key) return;
+  NEAR.key=key; NEAR.loading=true; NEAR.list=[];
+  const found=new Map(), S_=kakao.maps.services;
+  const opt={location:new kakao.maps.LatLng(o.lat,o.lng),radius:Math.min(CONFIG.NEAR_RADIUS,20000),
+    sort:S_.SortBy.DISTANCE};
+  let left=0;
+  const finish=()=>{
+    if(--left>0||NEAR.key!==key) return;
+    const rated=new Set(DATA.map(p=>p.kakaoId).filter(Boolean));
+    NEAR.list=[...found.values()]
+      .filter(d=>!NEAR_SKIP.some(w=>d.category_name.includes(w))&&!rated.has(d.id))
+      .map(d=>nearPlace(d,o)).sort((a,b)=>a.dist-b.dist);
+    NEAR.loading=false;
+    if(S.tab==="new") render();
+  };
+  /* 3페이지(45곳)까지 따라간다 */
+  const cb=(data,st,pg)=>{
+    if(st===S_.Status.OK) data.forEach(d=>found.set(d.id,d));
+    if(st===S_.Status.OK&&pg&&pg.hasNextPage&&pg.current<3){ pg.nextPage(); return; }
+    finish();
+  };
+  if(NEAR.q){
+    left=1; places.keywordSearch(NEAR.q,cb,{...opt,radius:5000,category_group_code:"FD6"});
+  } else {
+    left=1+NEAR_KEYWORDS.length;
+    places.categorySearch("FD6",cb,opt);
+    NEAR_KEYWORDS.forEach(k=>places.keywordSearch(k,cb,{...opt,category_group_code:"FD6"}));
+  }
+  if(S.tab==="new") render();
+}
 
 function drawOffices(){
   const box=$("#offices");
-  const counts={};
-  DATA.forEach(p=>{
-    if(!p.office) return;
-    if(S.tab==="no" ? p.rec!==false : p.rec===false) return;
-    counts[p.office]=(counts[p.office]||0)+1;
-  });
-  box.innerHTML=`<span class="olab">사옥</span>`+
+  const tabOk=p=>S.tab==="no"?p.rec===false:p.rec!==false;
+  box.innerHTML=`<span class="olab">기준 위치</span>`+
     OFFS.map(o=>`<button class="offbtn" data-off="${o.key}"
-      aria-pressed="${S.office===o.key}">${o.key}<em>${counts[o.key]||0}</em></button>`).join("")+
+      aria-pressed="${S.office===o.key}">${o.key}<em>${DATA.filter(p=>p.rated&&tabOk(p)&&nearTo(o,p)).length}</em></button>`).join("")+
+    `<button class="offbtn" data-off="me" aria-pressed="${S.office==="me"}">내 위치${myPos?"":"<em>찾기</em>"}</button>`+
     (S.office?"":`<span style="font-size:12.5px;font-weight:700">전체 보는 중</span>`);
 }
 
 /* 탭 개수와 눌린 상태, 그리고 탭에 맞는 정렬 버튼만 남긴다 */
 function drawTabs(){
-  const inOff=p=>!S.office||p.office===S.office;
-  const rec=DATA.filter(p=>p.name&&inOff(p)&&p.rec!==false).length;
-  const no=DATA.filter(p=>p.name&&inOff(p)&&p.rec===false).length;
+  const rec=DATA.filter(p=>p.name&&inBase(p)&&p.rec!==false).length;
+  const no=DATA.filter(p=>p.name&&inBase(p)&&p.rec===false).length;
   $("#tabRecN").textContent=rec;
   $("#tabNoN").textContent=no;
+  $("#tabNewN").textContent=NEAR.loading||!NEAR.key?"":NEAR.list.length;
   [...$("#tabs").children].forEach(b=>
     b.setAttribute("aria-pressed",String(b.dataset.tab===S.tab)));
-  const isNo=S.tab==="no";
+  const isNo=S.tab==="no", isNew=S.tab==="new";
+  $("#sorts").hidden=isNew;
+  $("#nearSearch").hidden=!isNew;
   const show=(k,on)=>{const b=document.querySelector(`[data-sort="${k}"]`);
     if(b) b.hidden=!on;};
   show("fit",!isNo); show("cheap",!isNo);
@@ -1466,26 +1738,54 @@ function setTab(tab){
   if(S.sort!=="near") S.sort = tab==="no" ? "worst" : "fit";
   closeSheet();
   drawOffices();
+  if(tab==="new"){
+    if(!S.office) S.office=OFFICE.key;      /* 주변 검색에는 기준점이 있어야 한다 */
+    loadNear();
+  }
   render();
 }
 
 function setOffice(key){
+  if(key==="me"&&!myPos) return findMe();   /* 위치를 잡으면 findMe 가 다시 부른다 */
   S.office=key;
   OFFICE=key?officeOf(key):OFFICE;
+  if(S.sort==="near"&&!myPos) S.sort="fit";
   drawOffices();
+  if(S.tab==="new") loadNear();
   render();
   if(!key||!mapReady) return;
+  if(OFFICE===ME) return;
   /* 사옥이 바뀌면 지도 중심과 이름 검색 기준점도 함께 옮긴다 */
   findOffice(()=>{
     map.setCenter(new kakao.maps.LatLng(OFFICE.lat,OFFICE.lng));
-    lookupCoords(()=>drawMarkers());
+    lookupCoords(()=>{ rebuild(); render(); });
   });
+}
+
+function renderNew(){
+  const list=NEAR.list, box=$("#cards");
+  $("#cnt").textContent=list.length;
+  $("#cntLabel").textContent=`${OFFICE.name} 주변 평가 없는 곳`;
+  $("#totalWrap").textContent="";
+  $("#listTitle").textContent=NEAR.q?`"${esc(unesc(NEAR.q))}" 검색 결과`:"가봤으면 별점 하나만";
+  if(!places) box.innerHTML=`<div class="empty">지도를 불러와야 주변 가게를 찾을 수 있어. 잠시만.</div>`;
+  else if(NEAR.loading) box.innerHTML=`<div class="empty">${OFFICE.name} 주변 가게를 찾는 중</div>`;
+  else if(!list.length) box.innerHTML=`<div class="empty">${NEAR.q?"검색 결과가 없거나 이미 평가된 곳뿐이야.":"주변 가게는 이미 전부 평가됐어. 대단하다."}</div>`;
+  else box.innerHTML=list.map(p=>`<button class="card new" data-id="${p.id}">
+      <div>
+        <h3 class="cname"><span class="dot" style="background:${CAT[p.cat]||"#9AA29B"}"></span>${p.name}<span>${p.cat}</span></h3>
+        <div class="cfacts"><span>${fmtDist(p.dist)}</span>${p.addr?`<span>${p.addr.split(" ").slice(1,3).join(" ")}</span>`:""}</div>
+      </div>
+      <div class="cright"><span class="ratecta">별점 남기기</span></div>
+    </button>`).join("");
+  if(mapReady) drawMarkers();
 }
 
 function render(){
   const list=filtered();
   const no=S.tab==="no";
   drawTabs();
+  if(S.tab==="new") return renderNew();
   $("#cnt").textContent=list.length;
   $("#cntLabel").textContent = no ? "비추로 올라온 곳" : "지금 조건에";
   const total=DATA.filter(p=>p.name&&(no?p.rec===false:p.rec!==false)).length;
@@ -1500,8 +1800,9 @@ function render(){
   if(!list.length){
     box.innerHTML = no
       ? `<div class="empty">아직 비추로 올라온 곳이 없어. 다행이네.<br><br>
-         데인 데가 있으면 별점 1점(또는 0점)으로 올려줘. 여기로 온다.</div>`
-      : `<div class="empty">조건에 맞는 곳이 없어. 예산 구간을 넓히거나 필수 조건을 하나 빼봐.<br><br>
+         데인 데가 있으면 "가봤어요?" 탭에서 찾아서 별점 1점(또는 0점)을 줘. 여기로 온다.</div>`
+      : `<div class="empty">조건에 맞는 곳이 없어. 예산 구간을 넓히거나 필수 조건을 하나 빼봐.<br>
+         ${S.office==="me"?"내 위치 주변엔 아직 평가된 곳이 없을 수 있어. \"가봤어요?\" 탭에서 별점을 남겨줘.<br>":""}<br>
          <button class="btn" onclick="window.__reset()">초기화</button></div>`;
   } else {
     box.innerHTML=list.map(p=>{
@@ -1548,8 +1849,198 @@ function render(){
    상세
    ═══════════════════════════════════════════════════ */
 const U='<span class="unknown">미확인</span>';
+/* ── 별점 남기기 ─────────────────────────────
+   별점만 필수. 나머지는 눌러주면 고맙고 안 눌러도 된다.
+   보낸 값은 이 브라우저에도 기억해서 다시 열면 그대로 채워져 있다 */
+const RATE_OPTS={
+  budget:{label:"인당 예산 (술 포함)",opts:[["25000","3만 이하"],["40000","3~5만"],["70000","5~10만"],["120000","10만 이상"]]},
+  fit:{label:"적정 인원",opts:[["4명 이하","4명 이하"],["5~8명","5~8명"],["9~12명","9~12명"],["13~20명","13~20명"],["20명 이상","20명 이상"]]},
+  room:{label:"룸",opts:[["있음","있음"],["없음","없음"]]},
+  parking:{label:"주차",opts:[["가능","가능"],["불가","불가"]]},
+  noise:{label:"소음",opts:[["조용","조용"],["보통","보통"],["시끄러움","시끄러움"]]}
+};
+/* 내가 남긴 평가는 로그인한 계정별로 기억한다. 다시 열면 그대로 채워져 있다 */
+const MINE_KEY="hoesik.mine";
+const myRating=kid=>{ const me=whoAmI(); return me?((store.get(MINE_KEY,{})[me]||{})[kid]||{}):{}; };
+function rateBox(p){
+  if(!p.kakaoId) return `<div class="sect"><h3>별점 남기기</h3>
+    <p class="rnote">지도에서 이 가게 위치를 찾는 중이야. 지도가 뜬 뒤 다시 열어줘.</p></div>`;
+  const mine=myRating(p.kakaoId);
+  const chip=(k,v,t)=>`<button type="button" class="chip" data-k="${k}" data-v="${v}" aria-pressed="${String(mine[k])===v}">${t}</button>`;
+  const starBtns=[1,2,3,4,5].map(n=>`<button type="button" class="star" data-v="${n}" aria-pressed="${mine.score>=n}" aria-label="${n}점">★</button>`).join("");
+  return `<div class="sect rate" id="rateBox">
+    <h3>${mine.score!==undefined?"내 평가 고치기":"가봤으면 별점 남겨줘"}</h3>
+    <div class="stars-in" role="group" aria-label="별점">${starBtns}
+      <button type="button" class="chip zero" data-v="0" aria-pressed="${mine.score===0}">0점 · 별점도 아깝다</button></div>
+    <p class="rnote">1점 이하는 비추 명단으로 가고 룰렛에서 빠져.</p>
+    <label class="rlabel" for="rateText">코멘트 <em>선택</em></label>
+    <textarea id="rateText" maxlength="300" rows="3" placeholder="좋았던 점, 아쉬운 점, 예약 요령 뭐든. 안 써도 돼.">${esc(mine.text||"")}</textarea>
+    <details class="more"${["budget","fit","room","parking","noise"].some(k=>mine[k])?" open":""}><summary>더 알려주면 좋은 것 (선택)</summary>
+      ${Object.entries(RATE_OPTS).map(([k,o])=>`<div class="rrow"><span>${o.label}</span><div class="chips">${o.opts.map(([v,t])=>chip(k,v,t)).join("")}</div></div>`).join("")}
+    </details>
+    <button class="btn btn-main" id="rateSend" disabled>${LOGIN()&&!session()?"카카오 로그인하고 남기기":"남기기"}</button>
+    ${LOGIN()&&!session()?`<p class="rnote">한 사람 한 표를 위해서만 로그인을 써. 이름·프로필은 안 받고 화면에도 안 나와.</p>`:""}
+  </div>`;
+}
+function bindRate(p){
+  const box=$("#rateBox"); if(!box) return;
+  const st={...myRating(p.kakaoId),...(p._draft||{})};
+  delete p._draft;
+  const send=$("#rateSend");
+  const sync=()=>{ send.disabled=st.score===undefined; };
+  box.addEventListener("click",e=>{
+    const s=e.target.closest(".star,.zero");
+    if(s){
+      st.score=+s.dataset.v;
+      box.querySelectorAll(".star").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.v<=st.score&&st.score>0)));
+      box.querySelector(".zero").setAttribute("aria-pressed",String(st.score===0));
+      return sync();
+    }
+    const c=e.target.closest(".chip[data-k]");
+    if(c){
+      const k=c.dataset.k, on=st[k]===c.dataset.v;
+      if(on) delete st[k]; else st[k]=c.dataset.v;
+      box.querySelectorAll(`.chip[data-k="${k}"]`).forEach(b=>b.setAttribute("aria-pressed",String(!on&&b===c)));
+    }
+  });
+  sync();
+  send.onclick=()=>{ st.text=$("#rateText").value.trim().slice(0,300); submitRating(p,st); };
+  const ta=$("#rateText"); if(ta&&st.text) ta.value=st.text;
+}
+/* 로그인이 안 돼 있으면 쓰던 내용을 들고 카카오 로그인에 다녀온다. 돌아오면 이어서 보낸다 */
+let sending=false;
+async function submitRating(p,st){
+  if(!LOGIN()&&!RATE_FORM){ toast("별점 받는 폼(CONFIG.RATE_FORM)이 아직 연결 안 됐어"); return; }
+  const s=LOGIN()?session():{uid:UID};
+  if(!s) return kakaoLogin({place:p,draft:st});
+  if(sending) return; sending=true;
+  const btn=$("#rateSend"); if(btn){ btn.disabled=true; btn.textContent="보내는 중"; }
+  const reqId=s.uid+"-"+Date.now().toString(36);
+  const payload={kakaoId:p.kakaoId,name:unesc(p.name),cat:unesc(p.cat),kcat:p.kcat||"",addr:unesc(p.addr),
+    lat:p.lat,lng:p.lng,score:st.score,budget:st.budget||"",room:st.room||"",parking:st.parking||"",
+    noise:st.noise||"",fit:st.fit||"",text:st.text||"",base:S.office||"",reqId};
+  let res=null;
+  try{
+    if(LOGIN()){
+      const r=await fetch(CONFIG.API_URL.replace(/\/$/,"")+"/rate",{method:"POST",
+        headers:{"Content-Type":"application/json"},body:JSON.stringify({token:s.token,...payload})});
+      res={status:r.status,...(await r.json().catch(()=>({})))};
+    } else {
+      /* 익명 모드: 구글 폼에 응답을 보낸다. 폼은 CORS 응답을 안 줘서 결과는 못 읽는다.
+         폼 본문(x-www-form-urlencoded)이면 사전 요청 없이 바로 간다 */
+      const vals={"카카오ID":payload.kakaoId,"매장명":payload.name,"업종":payload.cat,"카카오분류":payload.kcat,
+        "주소":payload.addr,"위도":payload.lat||"","경도":payload.lng||"","별점":payload.score,"인당예산":payload.budget,
+        "룸":payload.room,"주차":payload.parking,"소음":payload.noise,"적정인원":payload.fit,"한줄평":payload.text,
+        "작성자":UID,"기준":payload.base,"요청ID":reqId};
+      const body=new URLSearchParams();
+      Object.entries(RATE_FORM.entries).forEach(([name,entry])=>{ if(name in vals) body.set(entry,String(vals[name])); });
+      await fetch(RATE_FORM.action,{method:"POST",mode:"no-cors",body});
+      res={status:200,ok:true};
+    }
+  }catch(e){ res={status:0}; }
+  sending=false;
+  if(res.status===401){                       /* 세션 만료·강제 로그아웃 */
+    store.set(SESSION_KEY,null); drawAuth();
+    return kakaoLogin({place:p,draft:st});
+  }
+  if(!res.ok){
+    if(btn){ btn.disabled=false; btn.textContent="남기기"; }
+    return toast(res.error==="too_many"?"너무 많이 남겼어. 한 시간 뒤에 다시 해줘":"전송에 실패했어. 잠시 뒤 다시 눌러줘");
+  }
+  const row={"카카오ID":p.kakaoId,"매장명":payload.name,"업종":payload.cat,"카카오분류":payload.kcat,"주소":payload.addr,
+    "위도":String(p.lat||""),"경도":String(p.lng||""),"별점":String(st.score),"인당예산":payload.budget,
+    "룸":payload.room,"주차":payload.parking,"소음":payload.noise,"적정인원":payload.fit,"한줄평":payload.text,
+    "작성자":s.uid,"기준":payload.base,"요청ID":reqId,_t:Date.now()};
+  store.set(PENDING_KEY,store.get(PENDING_KEY,[]).concat(row));
+  const mine=store.get(MINE_KEY,{}); (mine[s.uid]=mine[s.uid]||{})[p.kakaoId]={...st}; store.set(MINE_KEY,mine);
+  RATINGS.push(row);
+  rebuild();
+  NEAR.list=NEAR.list.filter(x=>x.kakaoId!==p.kakaoId);
+  toast(st.score<=BAD_SCORE?"비추로 남겼어. 다음 사람이 안 데이게.":"남겼어. 고마워!");
+  drawOffices(); render();
+  openSheet("k"+p.kakaoId);
+}
+
+/* ── 카카오 로그인 ─────────────────────────────
+   SDK 가 카카오 로그인 화면으로 보냈다가 ?code=…&state=… 를 붙여 이 페이지로 돌려보낸다.
+   code 는 Worker 가 REST API 키로 토큰과 바꾸고, 회식각 세션 토큰을 돌려준다 */
+const AUTH_KEY="hoesik.auth";
+function kakaoLogin(resume){
+  if(!CONFIG.API_URL) return toast("로그인 서버(CONFIG.API_URL)가 아직 연결 안 됐어");
+  const state=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  try{
+    sessionStorage.setItem(AUTH_KEY,JSON.stringify({state,office:S.office,tab:S.tab,
+      place:resume&&resume.place?JSON.parse(JSON.stringify(resume.place)):null,draft:resume&&resume.draft||null}));
+  }catch(e){}
+  withKakao(ok=>{
+    if(!ok||!Kakao.Auth) return toast("카카오 로그인을 불러오지 못했어");
+    Kakao.Auth.authorize({redirectUri:SITE_URL,state});
+  });
+}
+function logout(){
+  store.set(SESSION_KEY,null); drawAuth(); toast("로그아웃했어");
+  if($("#sheet").classList.contains("on")) closeSheet();
+}
+function drawAuth(){
+  const b=$("#authBtn"); if(!b) return;
+  b.hidden=!CONFIG.API_URL;
+  b.textContent=session()?"로그아웃":"카카오 로그인";
+}
+/* 로그인에서 돌아왔을 때. 주소창의 code 는 바로 지운다 */
+let RESUME=null;
+async function finishLogin(){
+  const q=new URLSearchParams(location.search);
+  if(!q.has("code")&&!q.has("error")) return;
+  let saved={}; try{ saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||"{}"); sessionStorage.removeItem(AUTH_KEY);}catch(e){}
+  const code=q.get("code"), state=q.get("state");
+  ["code","state","error","error_description"].forEach(k=>q.delete(k));
+  history.replaceState(null,"",location.pathname+(q.toString()?"?"+q:"")+location.hash);
+  if(!code) return toast("로그인을 취소했어");
+  if(!saved.state||saved.state!==state) return toast("로그인 확인에 실패했어. 다시 해줘");
+  try{
+    const r=await fetch(CONFIG.API_URL.replace(/\/$/,"")+"/auth/kakao",{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify({code,redirectUri:SITE_URL})});
+    const j=await r.json();
+    if(!j.ok) throw new Error(j.error);
+    store.set(SESSION_KEY,{token:j.token,uid:j.uid,exp:j.exp});
+  }catch(e){ return toast("로그인에 실패했어. 잠시 뒤 다시 해줘"); }
+  if(saved.office!==undefined&&saved.office!=="me"&&officeOf(saved.office)){ S.office=saved.office; OFFICE=officeOf(saved.office); }
+  if(saved.tab) S.tab=saved.tab;
+  RESUME=saved;
+  toast("로그인했어");
+}
+/* 지도가 없어도 다시 열 수 있게, 로그인 전에 보던 가게를 그대로 들고 온다 */
+function resumeAfterLogin(){
+  if(!RESUME||!RESUME.place) return;
+  const snap=RESUME.place, draft=RESUME.draft; RESUME=null;
+  if(!byId(snap.id)) NEAR.list.push(snap);
+  const p=byId(snap.id);
+  if(draft&&draft.score!==undefined){ p._draft=draft; openSheet(p.id); submitRating(p,draft); }
+  else openSheet(p.id);
+}
+
 function openSheet(id){
-  const p=DATA.find(x=>x.id===id),room=hasRoom(p);
+  const p=byId(id); if(!p) return;
+  const room=hasRoom(p);
+  const fresh=!p.rated&&!p.reviews.length;   /* 아직 아무도 평가 안 한 가게 */
+  const mapHref=p.kakaoId?`https://place.map.kakao.com/${p.kakaoId}`:`https://map.kakao.com/?q=${mapQuery(p)}`;
+  if(fresh){
+    $("#sheet").innerHTML=`
+    <div class="stop">
+      <button class="x" id="closeSheet" aria-label="닫기">×</button>
+      <h2>${p.name}</h2>
+      <div class="sub">${p.cat}${p.dist?" · "+OFFICE.name+"에서 "+fmtDist(p.dist):""}</div>
+      <div class="unver-bar">아직 아무도 평가 안 한 곳이야. 가봤으면 첫 별점을 남겨줘.</div>
+    </div>
+    <div class="sbar">
+      ${p.phone?`<a href="tel:${p.phone}">전화 걸기</a>`:""}
+      <a href="${mapHref}" target="_blank" rel="noopener">카카오맵에서 보기</a>
+    </div>
+    ${rateBox(p)}
+    <div class="sect" style="margin-bottom:32px"><h3>위치</h3>
+      <dl class="kv"><dt>주소</dt><dd>${p.addr||U}</dd>${p.phone?`<dt>전화</dt><dd>${p.phone}</dd>`:""}</dl></div>`;
+    return showSheet(p);
+  }
   const noWhy = isZero(p) ? "별점도 아깝다" : `별점 ${p.score.toFixed(1)}점`;
   const stars="★".repeat(Math.round(p.score))+"☆".repeat(5-Math.round(p.score));
   $("#sheet").innerHTML=`
@@ -1567,9 +2058,9 @@ function openSheet(id){
   </div>
   <div class="sbar">
     ${p.phone?`<a href="tel:${p.phone}">전화 걸기</a>`:""}
-    <a href="https://map.kakao.com/?q=${mapQuery(p)}" target="_blank" rel="noopener">지도에서 보기</a>
+    <a href="${mapHref}" target="_blank" rel="noopener">지도에서 보기</a>
     <button class="kakao" id="sharePlaceBtn">위치 공유</button>
-    ${CONFIG.FORM_URL?`<a href="${CONFIG.FORM_URL}" target="_blank" rel="noopener">정보 추가하기</a>`:""}
+    <button id="goRate">별점 남기기</button>
   </div>
 
   <div class="sect">
@@ -1585,7 +2076,7 @@ function openSheet(id){
     <h3>인원과 공간</h3>
     <dl class="kv">
       <dt>적정 인원</dt><dd>${p.fitMin&&p.fitMax?`<b>${p.fitLabel||`${p.fitMin}~${p.fitMax}명`}</b>`:U}</dd>
-      <dt>룸</dt><dd>${room===null?U:room?p.rooms.map(r=>`${r[0]} ${r[1]}개`).join(", "):"없음"}</dd>
+      <dt>룸</dt><dd>${room===null?U:room?p.rooms.map(r=>r[1]>1?`${r[0]} ${r[1]}개`:r[0]).join(", "):"없음"}</dd>
       <dt>소음</dt><dd>${p.noise||U}</dd>
     </dl>
   </div>
@@ -1614,22 +2105,28 @@ function openSheet(id){
   </div>
 
   ${p.rated||p.reviews.length?`<div class="sect">
-    <h3>사내 후기${p.visits>1?` · ${p.visits}명이 등록`:""}</h3>
+    <h3>사내 후기${p.visits>1?` · ${p.visits}명이 평가`:""}</h3>
     ${p.rated?`<div class="starline"><span class="starnum">${p.score.toFixed(1)}<em>/ 5</em></span><span class="stars">${stars}</span>${isZero(p)?`<span style="font-size:12.5px;font-weight:800;color:var(--pink)">별점도 아깝다</span>`:""}</div>`:""}
     ${p.reviews.map(r=>`<div class="rv${r.bad?" bad":""}">${r.bad?"아쉬운 점 — ":""}${r.txt}${r.who?`<div class="who">${r.who}</div>`:""}</div>`).join("")}
   </div>`:""}
 
-  ${p.second.length?`<div class="sect" style="margin-bottom:32px">
+  ${p.second.length?`<div class="sect">
     <h3>2차 후보</h3>
     <dl class="kv">${p.second.map(s=>`<dt>${s[1]||"근처"}</dt><dd>${s[0]}</dd>`).join("")}</dl>
-  </div>`:'<div style="height:32px"></div>'}`;
-
+  </div>`:""}
+  ${rateBox(p)}
+  <div style="height:32px"></div>`;
+  $("#sharePlaceBtn").onclick=()=>sharePlace(p);
+  $("#goRate").onclick=()=>{ const b=$("#rateBox"); if(b) b.scrollIntoView({behavior:"smooth",block:"start"}); };
+  showSheet(p);
+}
+function showSheet(p){
+  bindRate(p);
   $("#sheet").classList.add("on");
   $("#sheet").setAttribute("aria-hidden","false");
   $("#scrim").classList.add("on");
   $("#stage").classList.add("split");
   $("#closeSheet").onclick=closeSheet;
-  $("#sharePlaceBtn").onclick=()=>sharePlace(p);
   $("#sheet").scrollTop=0;
   relayoutMap();
 }
@@ -1649,10 +2146,11 @@ function relayoutMap(){
 /* ═══════════════════════════════════════════════════
    룰렛
    ═══════════════════════════════════════════════════ */
-const WC=["#DDFF4A","#FF2E93","#2B5BFF","#FFFFFF","#FF7A00","#B8FF29",
-          "#8B5CF6","#00D9C0","#FFD400","#FF5252","#4ADEDE","#C2E82B"];
+const WC=["#E3EBA4","#E5487F","#7F98E6","#FFFFFF","#EFA36A","#B5D27A",
+          "#AE95E3","#7CCDBE","#EDD27E","#E98A8A","#94D0DB","#D2DE8C"];
 let rot=-Math.PI/2,spinning=false,cand=[];
-const pool=()=>recList().filter(p=>!S.excluded.has(p.id)).slice(0,12);
+/* 평가가 쌓인 곳만 룰렛에 올린다. 별점이 없거나 평균이 낮은 곳은 빠진다 */
+const pool=()=>recList().filter(p=>p.rated&&p.score>=CONFIG.ROULETTE_MIN&&!S.excluded.has(p.id)).slice(0,12);
 
 function draw(){
   const c=$("#wheel"),ctx=c.getContext("2d"),R=c.width/2,n=cand.length;
@@ -1672,7 +2170,7 @@ function draw(){
     ctx.save();ctx.translate(R,R);ctx.rotate(a+seg/2);
     ctx.textAlign="right";ctx.fillStyle="#0B0B0B";
     ctx.font="800 27px 'Gothic A1',sans-serif";
-    let nm=cand[i].name;if(nm.length>7)nm=nm.slice(0,7)+"…";
+    let nm=unesc(cand[i].name);if(nm.length>7)nm=nm.slice(0,7)+"…";
     ctx.fillText(nm,R-30,-1);
     ctx.font="700 20px 'Gothic A1','Malgun Gothic',sans-serif";
     ctx.fillStyle="rgba(11,11,11,.72)";
@@ -1681,12 +2179,12 @@ function draw(){
   }
   ctx.beginPath();ctx.arc(R,R,56,0,7);ctx.fillStyle="#0B0B0B";ctx.fill();
   ctx.strokeStyle="#0B0B0B";ctx.lineWidth=5;ctx.stroke();
-  ctx.fillStyle="#DDFF4A";ctx.font="800 27px 'Gothic A1',sans-serif";
+  ctx.fillStyle="#E3EBA4";ctx.font="800 27px 'Gothic A1',sans-serif";
   ctx.textAlign="center";ctx.fillText("회식각",R,R+8);
 }
 function openRoul(){
   cand=pool();rot=-Math.PI/2;
-  $("#roulSub").textContent=`조건에 맞는 ${cand.length}곳만 올렸습니다 · 비추는 빼고`;
+  $("#roulSub").textContent=`조건에 맞고 별점 ${CONFIG.ROULETTE_MIN}점 이상인 ${cand.length}곳 · 비추는 빼고`;
   $("#result").classList.remove("on");
   $("#doSpin").textContent="돌리기";
   renderEx();draw();
@@ -1696,7 +2194,7 @@ function openRoul(){
 function renderEx(){
   const b=$("#excluded");
   if(!S.excluded.size){b.innerHTML="";return;}
-  b.innerHTML=`제외됨: ${[...S.excluded].map(i=>DATA.find(d=>d.id===i).name).join(", ")} <button id="clearEx">되돌리기</button>`;
+  b.innerHTML=`제외됨: ${[...S.excluded].map(i=>(byId(i)||{name:""}).name).join(", ")} <button id="clearEx">되돌리기</button>`;
   $("#clearEx").onclick=()=>{S.excluded.clear();openRoul();};
 }
 function spin(){
@@ -1798,29 +2296,36 @@ $("#showAll").onclick=()=>{
   syncBudget();drawHead();render();
 };
 $("#myLoc").onclick=findMe;
+$("#authBtn").onclick=()=>session()?logout():kakaoLogin(null);
 $("#shareSiteBtn").onclick=shareSite;
 /* 제보 버튼 — 아래 등록 밴드로 데려가고 한 번 번쩍인다 */
 (function(){
   const fab=$("#fabReport"), band=document.querySelector(".reportband");
   if(!fab||!band) return;
-  fab.onclick=()=>{
+  /* 별점은 "가봤어요?" 탭에서 남긴다. 버튼은 그 탭을 열고 목록으로 데려간다 */
+  const go=()=>{
+    setTab("new");
     const soft=!matchMedia("(prefers-reduced-motion:reduce)").matches;
-    band.scrollIntoView({behavior:soft?"smooth":"auto",block:"center"});
-    band.classList.remove("flash");
-    void band.offsetWidth;              /* 애니메이션을 다시 태우려면 한 번 끊어야 한다 */
-    band.classList.add("flash");
+    $("#tabs").scrollIntoView({behavior:soft?"smooth":"auto",block:"start"});
   };
+  fab.onclick=go;
+  const rb=$("#reportBtn"); if(rb) rb.onclick=go;
   /* 밴드가 화면에 들어오면 버튼은 할 일이 없다 */
   if(window.IntersectionObserver)
     new IntersectionObserver(([e])=>fab.classList.toggle("off",e.isIntersecting),
       {threshold:.25}).observe(band);
 })();
+$("#nearSearch").addEventListener("submit",e=>{
+  e.preventDefault();
+  NEAR.q=$("#nearQ").value.trim();
+  loadNear(true);
+});
 $("#offices").addEventListener("click",e=>{
   const b=e.target.closest("[data-off]");if(!b)return;
   setOffice(b.dataset.off);
 });
 $("#cards").addEventListener("click",e=>{
-  const c=e.target.closest(".card");if(c)openSheet(+c.dataset.id);});
+  const c=e.target.closest(".card");if(c)openSheet(c.dataset.id);});
 $("#scrim").onclick=closeSheet;
 $("#openRoul").onclick=openRoul;
 $("#doSpin").onclick=spin;
@@ -1832,6 +2337,8 @@ document.addEventListener("keydown",e=>{
 
 /* 시트를 먼저 읽고, 실패하면 샘플로 그린다 */
 (async()=>{
+  await finishLogin();
+  drawAuth();
   const ok=await loadSheet();
   const noN=DATA.filter(p=>p.rec===false).length;
   $("#srcFlag").textContent = ok
@@ -1851,6 +2358,7 @@ document.addEventListener("keydown",e=>{
   }
   syncBudget();drawHead();drawOffices();
   render();
+  resumeAfterLogin();
   initMap();          /* 지도를 목록 위에 바로 띄운다 */
 })();
 </script>
