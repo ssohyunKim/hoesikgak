@@ -9,7 +9,12 @@ const SDK = { src: "https://t1.kakaocdn.net/kakao_js_sdk/2.8.0/kakao.min.js",
   integrity: "sha384-Lvrr4dmJLLhBimcAC4GfpNV3oEGKgfd26Mp7KkvDz8PxGrhUhUT3zoax7EirW8fu" };
 const SITE = CONFIG.SITE_URL;
 const link = (url = SITE) => ({ mobileWebUrl: url, webUrl: url });
-const OG = SITE.replace(/\/?$/, "/") + "og.png";
+const img = f => SITE.replace(/\/?$/, "/") + f;
+const OG = img("og.png");   /* 사이트 공유·링크 미리보기. 메타태그라 한 장뿐이다 */
+/* 결과 공유는 보낼 때 자바스크립트가 고르므로 지금 보고 있는 테마에 맞춘다.
+   손으로 테마를 바꿔둔 사람도 자기가 본 화면과 같은 카드를 보내게 된다 */
+const resultImg = () => img(document.documentElement.dataset.theme === "day"
+  ? "share-result-day.png" : "share-result-night.png");
 const cut = (s, n = 180) => s.length > n ? s.slice(0, n - 1) + "…" : s;
 
 let toastT = null;
@@ -77,7 +82,8 @@ export function sharePlace(p, { headline = "", back = SITE } = {}) {
     text: [title, desc, addr].filter(Boolean).join("\n"), url: p.kakaoId ? mapUrl : back,
     kakao: addr
       ? { objectType: "location", address: addr, addressTitle: title,
-          content: { title, description: cut(desc, 100), imageUrl: OG, link: link(back) },
+          content: { title, description: cut(desc, 100),
+            imageUrl: resultImg(), imageWidth: 1600, imageHeight: 800, link: link(back) },
           buttons: [{ title: "회식각에서 보기", link: link(back) }] }
       : { objectType: "text", text: cut([title, desc].join("\n")), link: link(back), buttonTitle: "회식각에서 보기" }
   });

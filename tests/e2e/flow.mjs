@@ -15,7 +15,11 @@ const errs=[], posts=[];
 p.on('pageerror',e=>errs.push('PAGEERR '+e.message)); p.on('console',m=>{ if(m.type()==='error') errs.push(m.text().slice(0,200)); });
 const CT={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'};
 await p.route('https://www.hoesikgak.com/**',r=>{ let path=new URL(r.request().url()).pathname; if(path==='/') path='/index.html';
-  const f=join(ROOT,path); if(!existsSync(f)) return r.fulfill({status:404,body:''}); r.fulfill({body:readFileSync(f),contentType:CT[extname(f)]||'application/octet-stream'}); });
+  const f=join(ROOT,path); if(!existsSync(f)) return r.fulfill({status:404,body:''});
+  let body=readFileSync(f);
+  // 이 테스트는 로그인·D1 이전의 시트 경로를 본다. 로그인 경로는 login.mjs 가 맡는다
+  if(path==='/js/config.js') body=String(body).replace(/API_BASE:\s*"[^"]*"/,'API_BASE: ""');
+  r.fulfill({body,contentType:CT[extname(f)]||'application/octet-stream'}); });
 await p.route('https://dapi.kakao.com/**',r=>r.fulfill({body:readFileSync(join(HERE,'kmaps.js')),contentType:'text/javascript'}));
 await p.route('https://t1.kakaocdn.net/**',r=>r.fulfill({body:readFileSync(join(HERE,'kshare.js')),contentType:'text/javascript'}));
 await p.route('https://cdn.jsdelivr.net/**',r=>r.fulfill({body:'',contentType:'text/css'}));
@@ -55,7 +59,7 @@ await p.click('#spin'); await p.waitForSelector('#wheel'); await shot('5wheel');
 await p.click('#go'); await p.waitForSelector('.result',{timeout:8000});
 log('winner:',(await p.textContent('.result .win')).trim(),'| meta:',(await p.textContent('.result .meta')).trim());
 await shot('6result');
-await p.click('#share'); await p.waitForTimeout(500); log('shared type:',await p.evaluate(()=>window.__shared&&window.__shared.objectType));
+await p.click('#share'); await p.waitForTimeout(500); log('shared type:',await p.evaluate(()=>window.__shared&&window.__shared.objectType),'| 썸네일:',await p.evaluate(()=>{const s=window.__shared;return (s&&s.content&&s.content.imageUrl||'(없음)').split('/').pop();}));
 await p.click('#detail'); await p.waitForTimeout(400); log('sheet over stage:',await p.locator('#sheet.on').count()); await shot('7sheet');
 await p.keyboard.press('Escape');
 // 흐름 2: 다음 날 카드
