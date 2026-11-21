@@ -77,6 +77,24 @@ await p.route(API + '/my', r => { const b = JSON.parse(r.request().postData()); 
   if (b.remove) { MINE = MINE.filter(x => x.kakaoId !== b.remove);
     return r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true, deleted:1 }) }); }
   r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true, ratings: MINE }) }); });
+/* 가짜 투표방 서버 — 1인 1표 규칙만 흉내 낸다 */
+const ROOMS = {};
+await p.route(API + '/room', r => { const b = JSON.parse(r.request().postData());
+  ROOMS.t1 = { id:'t1', title:b.title, base:b.base, picks:b.picks, votes:{}, closed:false, winner:'' };
+  r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true, id:'t1' }) }); });
+await p.route(API + '/room/get', r => { const m = ROOMS.t1;
+  const tally = {}; Object.values(m.votes).forEach(k => tally[k] = (tally[k]||0)+1);
+  r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true, room:{
+    id:m.id, title:m.title, base:m.base, picks:m.picks, tally,
+    voters:Object.keys(m.votes).length, mine:m.votes.me||'', closed:m.closed,
+    winner:m.winner, owner:true } }) }); });
+await p.route(API + '/room/vote', r => { const b = JSON.parse(r.request().postData());
+  ROOMS.t1.votes.me = b.kakaoId;
+  ROOMS.t1.votes.other = ROOMS.t1.votes.other || ROOMS.t1.picks[1].kakaoId;  // 다른 사람 1표
+  r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true }) }); });
+await p.route(API + '/room/close', r => { const b = JSON.parse(r.request().postData());
+  ROOMS.t1.closed = true; ROOMS.t1.winner = b.winner;
+  r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true }) }); });
 await p.route(API + '/rate', r => { seen.rate.push(JSON.parse(r.request().postData()));
   r.fulfill({ contentType: 'application/json', body: JSON.stringify({ ok: true }) }); });
 
@@ -170,6 +188,23 @@ const r0 = seen.rate[0] || {};
 log('   Worker /rate 로 간 값:', JSON.stringify({ token: r0.token, kakaoId: r0.kakaoId, score: r0.score, name: r0.name, reqId: r0.reqId }));
 log('   작성자를 클라이언트가 안 보냄:', r0.author === undefined);
 log('   한글 키 없음:', r0['매장명'] === undefined);
+
+/* ── 3-a. 투표방 ─────────────────────────────── */
+await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+await p.goto('https://www.hoesikgak.com/#/picks?s=team&n=8&b=3050&at=my'); await p.waitForSelector('#room', { timeout: 15000 });
+await p.click('#room'); await p.waitForSelector('.pc.vote', { timeout: 10000 }); await p.waitForTimeout(300);
+log('⑩ 투표방:', (await p.textContent('h1.q')).replace(/\s+/g,' ').trim(), '|', (await p.textContent('.sub')).trim().slice(0,40));
+log('   주소:', decodeURIComponent(await p.evaluate(() => location.hash)));
+log('   후보:', await p.locator('.pc.vote').count(), '곳 | 참여:', (await p.textContent('#cnt')).trim());
+await p.locator('.pc.vote').first().click(); await p.waitForTimeout(600);
+log('   투표 후 참여:', (await p.textContent('#cnt')).trim(),
+  '| 내 표 표시:', await p.locator('.pc.vote[aria-pressed=true]').count(),
+  '| 표 숫자:', (await p.$$eval('.pc.vote .vn', e => e.map(x=>x.textContent).filter(Boolean))).join(','));
+log('   마감 버튼:', (await p.textContent('#finish')).trim());
+await p.click('#finish'); await p.waitForTimeout(5200);
+log('   마감 후:', (await p.textContent('h1.q')).replace(/\s+/g,' ').trim(),
+  '| 당첨:', (await p.textContent('.card.winner h3').catch(()=>'(없음)')).trim());
+log('   마감되면 투표 잠김:', await p.locator('.pc.vote[disabled]').count() > 0);
 
 /* ── 3-b. 마이페이지 ─────────────────────────── */
 p.on('dialog', d => d.accept());

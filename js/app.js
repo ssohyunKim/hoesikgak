@@ -18,9 +18,10 @@ import * as picks from "./views/picks.js";
 import * as spin from "./views/spin.js";
 import * as mapView from "./views/map.js";
 import * as mypage from "./views/mypage.js";
+import * as room from "./views/room.js";
 import * as sheet from "./views/sheet.js";
 
-const VIEWS = { home, setup, picks, spin, map: mapView, mypage };
+const VIEWS = { home, setup, picks, spin, map: mapView, mypage, room };
 /* 옛 데이터의 위치를 이름으로 찾을 때만 쓰는 기준점. 화면에는 안 나온다 */
 const LEGACY_BASES = (CONFIG.LEGACY_BASES || []).map(o => ({ ...o }));
 const ME = { key: "me", name: "내 위치", lat: 0, lng: 0 };
@@ -106,6 +107,7 @@ async function render() {
     return myplace.render(root, ctx);
   }
   const { view, cond } = parseHash(location.hash);
+  if (ctx.view === "room" && view !== "room") room.leave();   // 표 polling 멈추기
   ctx.view = view; ctx.cond = cond;
   sheet.close();
   document.body.dataset.view = view;

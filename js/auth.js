@@ -105,6 +105,21 @@ export async function my(remove) {
   } catch { return { ok: false, error: "network" }; }
 }
 
+/* 투표방. path 는 "" | "/get" | "/vote" | "/close" */
+export async function room(path, body = {}) {
+  const s = session();
+  if (!s) return { ok: false, error: "login" };
+  try {
+    const r = await fetch(api("/room" + path), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...body, token: s.token })
+    });
+    if (r.status === 401) { logout(); return { ok: false, error: "login" }; }
+    const d = await r.json().catch(() => ({}));
+    return typeof d.ok === "boolean" ? d : { ok: false, error: "server" };
+  } catch { return { ok: false, error: "network" }; }
+}
+
 /* 로그인한 사람의 평가를 Worker 로 보낸다. 폼과 달리 성공·실패를 알 수 있다 */
 export async function postRate(payload) {
   const s = session();

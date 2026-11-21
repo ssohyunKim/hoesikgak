@@ -4,6 +4,9 @@ import { buildPicks } from "../picks.js";
 import { situationOf, budgetOf } from "../situations.js";
 import { nearby, makeMap, setPins } from "../kakao.js";
 import { cardHtml, pinEl, baseEl } from "./pins.js";
+import * as auth from "../auth.js";
+import { toast } from "../share.js";
+import { unesc } from "../util.js";
 
 let mode = "list";
 const CAT_EMOJI = { 고기: "🥩", 곱창: "🔥", 이자카야: "🍶", 해산물: "🦐", 일식: "🍣",
@@ -54,7 +57,7 @@ export async function render(root, ctx, alive) {
     ${wheel.length >= 2
       ? `<button class="btn primary" id="spin">🎡 룰렛 돌리기 <span style="opacity:.75;font-weight:700">${wheel.length}곳</span></button>`
       : `<button class="btn primary" id="widen">조건 넓히기</button>`}
-    <button class="btn ghost" disabled title="곧 열려요">🗳 투표방 · 곧</button>
+    <button class="btn ghost" id="room" ${wheel.length >= 2 ? "" : "disabled"}>🗳 투표방</button>
   </div></div>`;
 
   const q = s => root.querySelector(s);
@@ -66,6 +69,20 @@ export async function render(root, ctx, alive) {
   };
   if (q("#spin")) q("#spin").onclick = () => ctx.go("spin", c);
   if (q("#widen")) q("#widen").onclick = () => ctx.go("setup", c);
+  if (q("#room")) q("#room").onclick = async e => {
+    const b = e.currentTarget;
+    b.disabled = true; b.textContent = "방 만드는 중";
+    /* 후보를 그대로 박아 보낸다. 조건만 넘기면 여는 사람마다 다른 목록이 된다 */
+    const res = await auth.room("", {
+      /* 기준 위치는 방 화면이 따로 보여준다. 제목에 넣으면 겹친다 */
+      title: [`${sit.emoji} ${sit.label}`, c.n ? `${c.n}명` : "", budgetOf(c.b).key === "any" ? "" : budgetOf(c.b).label].filter(Boolean).join(" · "),
+      base: { name: base.key === "me" ? "내 위치" : base.name, lat: base.lat, lng: base.lng },
+      picks: wheel.map(p => ({ kakaoId: p.kakaoId, name: unesc(p.name), cat: unesc(p.cat),
+        score: p.rated ? p.score : 0, budget: p.budget || 0, dist: Math.round(p.dist || 0) }))
+    });
+    if (!res.ok) { b.disabled = false; b.textContent = "🗳 투표방"; return toast("방을 만들지 못했어요."); }
+    ctx.go("room", { r: res.id });
+  };
   q("#listBox").addEventListener("click", e => {
     const x = e.target.closest("[data-x]");
     if (x) { e.stopPropagation(); return ctx.go("picks", { ...c, x: [...c.x, x.dataset.x] }); }
