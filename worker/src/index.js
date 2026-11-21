@@ -6,6 +6,7 @@
      POST /me             내 기준 위치(우리 회사) 읽기·저장
      GET  /rows           기준 위치 반경 안의 평가 행 (D1)
      POST /my             내가 남긴 평가 보기·한 줄 지우기
+     POST /room[/get|/vote|/close]  투표방 만들기·보기·투표·마감
      POST /rate           로그인한 사람의 별점을 D1 에 쓴다
      GET|POST /kakao/unlink   카카오 "연결 끊기 웹훅"
      POST /kakao/events   카카오 "계정 상태 변경 웹훅" (SET, RFC 8417/8935)
@@ -41,6 +42,10 @@ export default {
         case "/me": if (req.method === "POST") return withCors(await me(req, env), cors); break;
         case "/rows": if (req.method === "GET") return withCors(await rows(req, env), cors); break;
         case "/my": if (req.method === "POST") return withCors(await my(req, env), cors); break;
+        case "/room": if (req.method === "POST") return withCors(await roomCreate(req, env), cors); break;
+        case "/room/get": if (req.method === "POST") return withCors(await roomGet(req, env), cors); break;
+        case "/room/vote": if (req.method === "POST") return withCors(await roomVote(req, env), cors); break;
+        case "/room/close": if (req.method === "POST") return withCors(await roomClose(req, env), cors); break;
         case "/rate": if (req.method === "POST") return withCors(await rate(req, env), cors); break;
         case "/kakao/unlink": return await unlinkHook(req, env, ctx);
         case "/kakao/events": if (req.method === "POST") return await eventsHook(req, env, ctx); break;
@@ -165,6 +170,110 @@ async function my(req, env) {
   })) });
 }
 
+
+/* ── 투표방 ─────────────────────────────────
+   POST /room          {token, title, base, picks[]}      → 방 만들기
+   POST /room/get      {token, id}                        → 방 + 표 현황 + 내 표
+   POST /room/vote     {token, id, kakaoId}               → 1인 1표 (다시 누르면 바뀜)
+   POST /room/close    {token, id, winner}                → 방장이 결과 확정
+
+   후보는 만들 때 고정한다. 기준 위치가 사람마다 달라서 조건만 넘기면
+   여는 사람마다 다른 목록을 보게 된다. */
+const ROOM_MAX_PICKS = 12;
+const roomId = () => {
+  const a = "abcdefghjkmnpqrstuvwxyz23456789";          /* 헷갈리는 glyph 제외 */
+  return [...crypto.getRandomValues(new Uint8Array(7))].map(b => a[b % a.length]).join("");
+};
+
+async function roomCreate(req, env) {
+  const body = await req.json().catch(() => null);
+  const s = body && await verifySession(env, body.token);
+  if (!s) return json({ ok: false, error: "login" }, 401);
+  if (!env.DB) return json({ ok: false, error: "no_db" }, 501);
+
+  const picks = Array.isArray(body.picks) ? body.picks.slice(0, ROOM_MAX_PICKS).map(p => ({
+    kakaoId: String(p.kakaoId || "").replace(/\D/g, ""),
+    name: clip(p.name, 60), cat: clip(p.cat, 20),
+    score: Number(p.score) || 0, budget: Number(p.budget) || 0, dist: Number(p.dist) || 0
+  })).filter(p => p.kakaoId && p.name) : [];
+  if (picks.length < 2) return json({ ok: false, error: "need_picks" }, 400);
+
+  const b = body.base || {};
+  const id = roomId();
+  await env.DB.prepare(
+    `INSERT INTO rooms (id, owner, title, base_name, base_lat, base_lng, picks, created_at)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8)`
+  ).bind(id, s.uid, clip(body.title, 80), clip(b.name, 60),
+    Number(b.lat) || null, Number(b.lng) || null,
+    JSON.stringify(picks), Math.floor(Date.now() / 1000)).run();
+  return json({ ok: true, id });
+}
+
+/* 방 하나를 읽어 표까지 붙여 준다. 로그인한 사람이면 누구나 볼 수 있다 */
+async function roomGet(req, env) {
+  const body = await req.json().catch(() => null);
+  const s = body && await verifySession(env, body.token);
+  if (!s) return json({ ok: false, error: "login" }, 401);
+  if (!env.DB) return json({ ok: false, error: "no_db" }, 501);
+  const id = String(body.id || "").slice(0, 16);
+
+  const r = await env.DB.prepare("SELECT * FROM rooms WHERE id = ?1").bind(id).first();
+  if (!r) return json({ ok: false, error: "not_found" }, 404);
+  const { results } = await env.DB.prepare(
+    "SELECT kakao_id, COUNT(*) AS n FROM votes WHERE room_id = ?1 GROUP BY kakao_id").bind(id).all();
+  const mine = await env.DB.prepare(
+    "SELECT kakao_id FROM votes WHERE room_id = ?1 AND voter = ?2").bind(id, s.uid).first();
+  const tally = {};
+  (results || []).forEach(x => { tally[x.kakao_id] = x.n; });
+
+  let picks = [];
+  try { picks = JSON.parse(r.picks); } catch { /* 깨진 방은 빈 목록으로 */ }
+  return json({ ok: true, room: {
+    id: r.id, title: r.title, mine: mine ? mine.kakao_id : "",
+    base: { name: r.base_name, lat: r.base_lat, lng: r.base_lng },
+    picks, tally, voters: Object.values(tally).reduce((a, b) => a + b, 0),
+    closed: !!r.closed, winner: r.winner || "", owner: r.owner === s.uid,
+    createdAt: r.created_at
+  } });
+}
+
+async function roomVote(req, env) {
+  const body = await req.json().catch(() => null);
+  const s = body && await verifySession(env, body.token);
+  if (!s) return json({ ok: false, error: "login" }, 401);
+  if (!env.DB) return json({ ok: false, error: "no_db" }, 501);
+  const id = String(body.id || "").slice(0, 16);
+  const kakaoId = String(body.kakaoId || "").replace(/\D/g, "");
+
+  const r = await env.DB.prepare("SELECT picks, closed FROM rooms WHERE id = ?1").bind(id).first();
+  if (!r) return json({ ok: false, error: "not_found" }, 404);
+  if (r.closed) return json({ ok: false, error: "closed" }, 409);
+  /* 방에 없는 가게에는 못 던진다 */
+  let picks = []; try { picks = JSON.parse(r.picks); } catch { /* 무시 */ }
+  if (!picks.some(p => p.kakaoId === kakaoId)) return json({ ok: false, error: "bad_pick" }, 400);
+
+  await env.DB.prepare(
+    `INSERT INTO votes (room_id, voter, kakao_id, created_at) VALUES (?1,?2,?3,?4)
+       ON CONFLICT(room_id, voter) DO UPDATE SET kakao_id = excluded.kakao_id, created_at = excluded.created_at`
+  ).bind(id, s.uid, kakaoId, Math.floor(Date.now() / 1000)).run();
+  return json({ ok: true });
+}
+
+async function roomClose(req, env) {
+  const body = await req.json().catch(() => null);
+  const s = body && await verifySession(env, body.token);
+  if (!s) return json({ ok: false, error: "login" }, 401);
+  if (!env.DB) return json({ ok: false, error: "no_db" }, 501);
+  const id = String(body.id || "").slice(0, 16);
+  const winner = String(body.winner || "").replace(/\D/g, "");
+
+  const r = await env.DB.prepare("SELECT owner FROM rooms WHERE id = ?1").bind(id).first();
+  if (!r) return json({ ok: false, error: "not_found" }, 404);
+  if (r.owner !== s.uid) return json({ ok: false, error: "not_owner" }, 403);
+  await env.DB.prepare("UPDATE rooms SET closed = 1, winner = ?2 WHERE id = ?1")
+    .bind(id, winner || null).run();
+  return json({ ok: true });
+}
 
 /* ── 별점 ──────────────────────────────────── */
 const PER_HOUR = 40;
