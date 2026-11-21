@@ -74,6 +74,15 @@ await p.click('#mapBtn'); await p.waitForSelector('#filters',{timeout:15000}); a
 log('filters:',(await p.textContent('#filters')).replace(/\s+/g,' ').trim());
 await shot('9explore');
 await p.click('[data-f="bad"]'); log('bad list:',(await p.$$eval('#list .pc h3',e=>e.map(x=>x.textContent.trim()))).join(','));
+// 가게 이름으로 찾기
+await p.click('[data-f="all"]'); await p.waitForTimeout(200);
+await p.fill('#q','친구네정육식당'); await p.press('#q','Enter'); await p.waitForTimeout(900);
+log('search:',(await p.textContent('#foundbar')).replace(/\s+/g,' ').trim(),
+  '| 결과:',(await p.$$eval('#list .pc h3',e=>e.map(x=>x.textContent.replace(/\s+/g,' ').trim()))).slice(0,3).join(' / '),
+  '| 필터 숨김:',await p.locator('#filters').isHidden());
+log('search 평점 붙었나:',(await p.textContent('#list .pc')).includes('★')||(await p.textContent('#list .pc')).includes('평가 없음'));
+await p.click('#clearq'); await p.waitForTimeout(400);
+log('검색 지움 → 필터 복귀:',!await p.locator('#filters').isHidden(),'| 목록:',await p.locator('#list .pc').count(),'곳');
 await p.click('[data-f="new"]'); await p.locator('#list .pc').first().click(); await p.waitForTimeout(300);
 await p.click('#rateBox .star[data-v="5"]'); await p.click('#rateBox [type=submit]'); await p.waitForTimeout(900);
 log('post2 별점:',posts[1]&&posts[1].get('entry.1586533610'),'| sheet reopened as rated:',(await p.textContent('#sheet').catch(()=>'')).includes('사내 별점'));
