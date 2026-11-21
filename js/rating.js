@@ -4,6 +4,7 @@
    ═══════════════════════════════════════════════════ */
 import { CONFIG } from "./config.js";
 import * as store from "./store.js";
+import * as auth from "./auth.js";
 import { esc, unesc } from "./util.js";
 import { addPendingRow, CLOSED_MARK } from "./data.js";
 
@@ -36,7 +37,11 @@ export function reviewDue(now, last, mineIds) {
 }
 
 /* ── 저장소 ───────────────────────────────── */
+/* 로그인했으면 세션 uid, 아니면 이 브라우저에만 있는 익명 ID.
+   익명 ID 는 기기를 바꾸면 달라져서 "내 평가"가 따라오지 않는다 */
 export function uid() {
+  const me = auth.uid();
+  if (me) return me;
   let u = store.get(UID_KEY, "");
   if (!u) { u = "u" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); store.set(UID_KEY, u); }
   return u;
@@ -51,7 +56,16 @@ export const forgetSpin = () => store.del(SPIN_KEY);
 
 /* ── 보내기 ───────────────────────────────── */
 const FORM = parseFormLink(CONFIG.RATE_FORM);
-export const canRate = () => !!FORM;
+export const canRate = () => auth.enabled() || !!FORM;
+
+/* Worker 를 거칠 때 쓰는 이름. 시트에 쓰는 Apps Script 가 이 이름들을 받는다.
+   작성자는 보내지 않는다 — Worker 가 세션에서 꺼내 붙인다 */
+const WORKER_KEYS = {
+  "카카오ID": "kakaoId", "매장명": "name", "업종": "cat", "카카오분류": "kcat", "주소": "addr",
+  "위도": "lat", "경도": "lng", "별점": "score", "인당예산": "budget", "룸": "room",
+  "주차": "parking", "소음": "noise", "적정인원": "fit", "한줄평": "text",
+  "기준": "base", "요청ID": "reqId"
+};
 
 /* st: {score, text, budget, fit, room, parking, noise}. 성공 여부를 알 수 없어서(no-cors)
    보내지면 성공으로 보고 화면에 바로 반영한다 */
@@ -72,7 +86,6 @@ export async function reportClosed(p, base) {
 }
 
 async function send(p, st, base) {
-  if (!FORM) throw new Error("no_form");
   const me = uid(), reqId = me + "-" + Date.now().toString(36);
   const vals = {
     "카카오ID": p.kakaoId, "매장명": unesc(p.name), "업종": unesc(p.cat), "카카오분류": unesc(p.kcat || ""),
@@ -80,7 +93,19 @@ async function send(p, st, base) {
     "인당예산": st.budget || "", "룸": st.room || "", "주차": st.parking || "", "소음": st.noise || "",
     "적정인원": st.fit || "", "한줄평": (st.text || "").slice(0, 300), "작성자": me, "기준": base || "", "요청ID": reqId
   };
-  await fetch(FORM.action, { method: "POST", mode: "no-cors", body: formBody(FORM, vals) });
+
+  if (auth.enabled()) {
+    /* 로그인 모드. 폼과 달리 성공·실패가 돌아온다 */
+    const payload = {};
+    for (const [k, v] of Object.entries(vals)) if (WORKER_KEYS[k]) payload[WORKER_KEYS[k]] = v;
+    /* "문 닫았어요"는 별점 없이 표시만 남긴다. D1 에서는 따로 칸이 있다 */
+    if (vals["한줄평"] === CLOSED_MARK) { payload.closed = 1; payload.text = ""; }
+    const r = await auth.postRate(payload);
+    if (!r.ok) throw new Error(r.error || "send_failed");
+  } else {
+    if (!FORM) throw new Error("no_form");
+    await fetch(FORM.action, { method: "POST", mode: "no-cors", body: formBody(FORM, vals) });
+  }
   addPendingRow({ ...Object.fromEntries(Object.entries(vals).map(([k, v]) => [k, String(v)])), _t: Date.now() });
 }
 
@@ -92,9 +117,10 @@ const OPTS = {
   parking: ["주차", [["가능", "가능"], ["불가", "불가"]]],
   noise: ["소음", [["조용", "조용"], ["보통", "보통"], ["시끄러움", "시끄러움"]]],
 };
-export function rateFormHtml(p, { compact = false } = {}) {
+/* initial 을 주면 그 값으로 채운다 (마이페이지는 서버에서 받은 내 평가를 쓴다) */
+export function rateFormHtml(p, { compact = false, initial = null } = {}) {
   if (!p.kakaoId) return `<p class="note">지도에서 이 가게 위치를 찾는 중이에요. 잠시 뒤 다시 열어주세요.</p>`;
-  const mine = myRating(p.kakaoId) || {};
+  const mine = initial || myRating(p.kakaoId) || {};
   const stars = [1, 2, 3, 4, 5].map(n =>
     `<button type="button" class="star" data-v="${n}" aria-pressed="${mine.score >= n}" aria-label="${n}점">★</button>`).join("");
   const chips = Object.entries(OPTS).map(([k, [label, opts]]) => `<div class="rrow"><span>${label}</span><div class="chips">${
@@ -112,9 +138,9 @@ export function rateFormHtml(p, { compact = false } = {}) {
   </form>`;
 }
 /* onSubmit(st) 는 Promise. 끝나면 폼을 다시 그리는 건 호출한 쪽이 한다 */
-export function bindRateForm(root, p, onSubmit) {
+export function bindRateForm(root, p, onSubmit, initial = null) {
   const form = root.querySelector("form.rate"); if (!form) return;
-  const st = { ...(myRating(p.kakaoId) || {}) };
+  const st = { ...(initial || myRating(p.kakaoId) || {}) };
   const send = form.querySelector("[type=submit]");
   const sync = () => { send.disabled = st.score === undefined; };
   form.addEventListener("click", e => {

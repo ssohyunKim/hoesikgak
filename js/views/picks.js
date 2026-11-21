@@ -6,14 +6,16 @@ import { nearby, makeMap, setPins } from "../kakao.js";
 import { cardHtml, pinEl, baseEl } from "./pins.js";
 
 let mode = "list";
+const CAT_EMOJI = { 고기: "🥩", 곱창: "🔥", 이자카야: "🍶", 해산물: "🦐", 일식: "🍣",
+  중식: "🥟", 양식: "🍝", 한식: "🍚", 기타: "🍽" };
 const withTimeout = (p, ms, v) => Promise.race([p, new Promise(r => setTimeout(() => r(v), ms))]);
 
-export const fullCond = (ctx, cond = ctx.cond) => ({ s: "any", n: null, b: "any", at: ctx.defaultAt(), w: [], x: [], ...cond });
+export const fullCond = (ctx, cond = ctx.cond) => ({ s: "any", n: null, b: "any", at: ctx.defaultAt(), c: "", w: [], x: [], ...cond });
 
 /* 후보 계산. 룰렛 화면도 같은 결과를 쓴다 */
 export async function computePicks(ctx, c) {
   const base = await ctx.base(c.at);
-  await ctx.ready;
+  await ctx.load(base);
   const mapsOk = await withTimeout(ctx.mapsOk, 7000, false);
   const near = (mapsOk ? await withTimeout(nearby(base), 8000, []) : []).filter(p => !ctx.closed.has(p.kakaoId));
   const sit = situationOf(c.s);
@@ -25,7 +27,7 @@ export async function render(root, ctx, alive) {
   root.innerHTML = `<div class="wrap"><div class="empty"><b>후보를 모으는 중…</b>사내 별점과 주변 가게를 찾고 있어요</div></div>`;
   const r = await computePicks(ctx, c);
   if (!alive()) return;
-  const { base, sit, list, wheel, mapsOk } = r;
+  const { base, sit, list, wheel, mapsOk, cats, cat, total } = r;
   const good = list.filter(p => !p.isNew && !p.low), fresh = list.filter(p => p.isNew), low = list.filter(p => p.low);
   const summary = [c.n ? `${c.n}명` : "인원 무관", budgetOf(c.b).key === "any" ? "예산 무관" : budgetOf(c.b).label, base.key === "me" ? "내 위치" : base.name].join(" · ");
   const wide = matchMedia("(min-width: 900px)").matches;
@@ -37,6 +39,10 @@ export async function render(root, ctx, alive) {
 
   root.innerHTML = `<div class="wrap">
     <button class="sitpill" id="chg">${sit.emoji} ${sit.label} · ${summary} <span style="opacity:.6">· 바꾸기</span></button>
+    ${cats.length > 1 ? `<div class="mapfilters" id="cats">
+      <button class="chip sm" data-c="" aria-pressed="${!cat}">전체 ${total}</button>
+      ${cats.map(x => `<button class="chip sm" data-c="${x.cat}" aria-pressed="${cat === x.cat}">${CAT_EMOJI[x.cat] || "🍽"} ${x.cat} ${x.n}</button>`).join("")}
+    </div>` : ""}
     <div class="phead"><h2>후보 ${list.length}곳 <span class="note" style="display:inline">${c.x.length ? `(${c.x.length}곳 뺌)` : ""}</span></h2>
       ${wide ? "" : `<div class="seg" id="seg"><button data-m="list" aria-pressed="${mode === "list"}">목록</button><button data-m="map" aria-pressed="${mode === "map"}">지도</button></div>`}</div>
     <div class="${wide ? "picks-split" : ""}">
@@ -53,6 +59,11 @@ export async function render(root, ctx, alive) {
 
   const q = s => root.querySelector(s);
   q("#chg").onclick = () => ctx.go("setup", c);
+  const catBox = q("#cats");
+  if (catBox) catBox.onclick = e => {
+    const b = e.target.closest("[data-c]");
+    if (b) ctx.go("picks", { ...c, c: b.dataset.c });
+  };
   if (q("#spin")) q("#spin").onclick = () => ctx.go("spin", c);
   if (q("#widen")) q("#widen").onclick = () => ctx.go("setup", c);
   q("#listBox").addEventListener("click", e => {

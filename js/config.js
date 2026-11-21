@@ -14,12 +14,22 @@ export const CONFIG = {
   KAKAO_KEY: "20002404caeec65787ea2d0c19935431",
   KAKAO_SHARE: true,
 
-  /* key 는 시트의 "사옥/기준" 값과 같아야 한다. lat/lng 는 주소를 못 찾을 때 쓰는 대략값 */
-  OFFICES: [
+  /* 회식각 API (worker/). `npx wrangler deploy` 하고 나온 주소를 넣는다.
+     예: "https://hoesikgak-api.내계정.workers.dev"
+     비어 있으면 로그인 없이 익명으로 돈다 — 배포 전에도 사이트가 멈추지 않게 */
+  API_BASE: "https://hoesikgak-api.blumen1229.workers.dev",
+  /* API_BASE 가 채워져 있을 때만 적용된다. true 면 로그인해야 사이트를 쓸 수 있다 */
+  REQUIRE_LOGIN: true,
+
+  /* 기준 위치는 사용자가 로그인하고 직접 등록한다. 고정 사옥 목록은 더 없다.
+
+     아래는 옛 등록 폼 데이터 전용이다. 그 행들은 좌표가 없어서 가게 이름을
+     이 좌표 근처에서 찾아 위치를 붙인다. 화면에는 나오지 않는다.
+     tools/migrate-legacy.mjs 로 이관을 끝내면 이 항목째로 지워도 된다 */
+  LEGACY_BASES: [
     { key: "보라매", name: "보라매사옥", addr: "서울 관악구 보라매로5길 1", lat: 37.4993, lng: 126.9203 },
     { key: "마포", name: "마포사옥", addr: "서울 마포구 마포대로 144", lat: 37.5443, lng: 126.9515 },
   ],
-  DEFAULT_OFFICE: "보라매",
 
   NEAR_RADIUS: 1500,    // 기준 위치에서 이 거리(m) 안만 후보
   LEGACY_RADIUS: 6000,  // 옛 데이터(이름만 있음)를 이름으로 찾을 반경

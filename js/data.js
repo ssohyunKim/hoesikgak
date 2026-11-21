@@ -99,14 +99,8 @@ const avg = a => a.reduce((s, x) => s + x, 0) / a.length;
 const isBad = s => s !== null && s <= 1;
 export const recOf = p => !(p.rated && p.score <= 1);
 
-function nearestOffice(lat, lng, offices) {
-  let best = "", bd = Infinity;
-  offices.forEach(o => { const d = distOf(lat, lng, o.lat, o.lng); if (d < bd) { bd = d; best = o.key; } });
-  return bd <= CONFIG.NEAR_RADIUS * 2 ? best : "";
-}
-
 /* ── 평가 탭 → 가게 ─────────────────────────── */
-export function aggregate(rows, offices = CONFIG.OFFICES) {
+export function aggregate(rows) {
   const groups = new Map();
   rows.forEach((r, i) => {
     const id = T(r["카카오ID"]).replace(/\.0+$/, "");
@@ -125,7 +119,7 @@ export function aggregate(rows, offices = CONFIG.OFFICES) {
       id: "k" + id, kakaoId: id,
       name: esc(T(last["매장명"])), cat: esc(mode(g.map(r => r["업종"])) || catOf(last["카카오분류"])),
       kcat: esc(T(last["카카오분류"])), addr: esc(T(last["주소"])), phone: "",
-      lat, lng, office: lat && lng ? nearestOffice(lat, lng, offices) : T(last["기준"]),
+      lat, lng,
       rated: scores.length > 0, score: scores.length ? avg(scores) : 0, count: scores.length,
       recNo: g.filter(r => isBad(starScore(r["별점"]))).length,
       budget: median(g.map(r => numOf(r["인당예산"]))),
@@ -230,15 +224,45 @@ async function sheet(name) {
   if (!res.ok) throw new Error("HTTP " + res.status);
   return toObjects(parseCSV(await res.text()));
 }
-export async function loadPlaces() {
+
+/* ── D1 에서 읽기 ───────────────────────────
+   Worker 가 기준 위치 반경의 행만 준다. 집계는 지금까지처럼 여기서 한다.
+   서버 컬럼 이름을 시트 열 이름으로 바꿔 끼우면 아래 로직이 그대로 돌아간다 */
+export const fromApi = r => ({
+  "카카오ID": String(r.kakaoId ?? ""), "매장명": r.name ?? "", "업종": r.cat ?? "",
+  "카카오분류": r.kcat ?? "", "주소": r.addr ?? "", "위도": r.lat ?? "", "경도": r.lng ?? "",
+  "별점": r.score === null || r.score === undefined ? "" : String(r.score),
+  "인당예산": r.budget ?? "", "룸": r.room ?? "", "주차": r.parking ?? "",
+  "소음": r.noise ?? "", "적정인원": r.fit ?? "",
+  "한줄평": r.closed ? CLOSED_MARK : (r.text ?? ""),
+  "작성자": r.author ?? "", "기준": "", "요청ID": r.reqId ?? ""
+});
+async function apiRows(base, radius) {
+  const u = `${String(CONFIG.API_BASE).replace(/\/+$/, "")}/rows`
+    + `?lat=${base.lat}&lng=${base.lng}&r=${radius}`;
+  const res = await fetch(u);
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const d = await res.json();
+  if (!d.ok) throw new Error(d.error || "api");
+  return d.rows.map(fromApi);
+}
+
+/* base 를 주면 D1 에서 그 주변만, 안 주면(=배포 전) 지금까지처럼 시트 전체를 읽는다 */
+export async function loadPlaces(base = null) {
+  const useApi = !!(CONFIG.API_BASE && base && base.lat);
   let rows = [], migrated = false, ok = false;
   try {
-    rows = await sheet(CONFIG.RATING_SHEET);
-    /* 평가 탭이 없으면 gviz 가 첫 탭을 돌려준다. 카카오ID 열이 없으면 평가 탭이 아니다 */
-    if (rows.length && !("카카오ID" in rows[0])) rows = [];
-    migrated = rows.some(r => /^legacy/.test(T(r["작성자"])));
+    if (useApi) {
+      rows = await apiRows(base, CONFIG.NEAR_RADIUS * 3);
+      migrated = true;                 /* D1 로 옮겼으면 옛 시트는 더 보지 않는다 */
+    } else {
+      rows = await sheet(CONFIG.RATING_SHEET);
+      /* 평가 탭이 없으면 gviz 가 첫 탭을 돌려준다. 카카오ID 열이 없으면 평가 탭이 아니다 */
+      if (rows.length && !("카카오ID" in rows[0])) rows = [];
+      migrated = rows.some(r => /^legacy/.test(T(r["작성자"])));
+    }
     ok = true;
-  } catch (e) { console.warn("평가 탭을 읽지 못했습니다:", e.message); }
+  } catch (e) { console.warn("평가를 읽지 못했습니다:", e.message); }
   const merged = mergePending(rows, store.get(PENDING_KEY, []));
   store.set(PENDING_KEY, merged.keep);
   db.rows = merged.rows;

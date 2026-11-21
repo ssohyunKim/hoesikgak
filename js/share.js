@@ -20,21 +20,26 @@ export function toast(msg) {
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2800);
 }
 
+/* SDK 받기 + init. 공유와 로그인(auth.js)이 같이 쓴다. 처음 부를 때 한 번만 받는다 */
 let sdk = null;
-function withKakao() {
+export function kakaoSdk() {
   if (sdk) return sdk;
   sdk = new Promise(resolve => {
-    if (!CONFIG.KAKAO_KEY || !CONFIG.KAKAO_SHARE) return resolve(false);
+    if (!CONFIG.KAKAO_KEY) return resolve(false);
     const s = document.createElement("script");
     s.integrity = SDK.integrity; s.crossOrigin = "anonymous"; s.src = SDK.src;   // integrity 는 src 보다 먼저
     s.onload = () => {
-      try { if (!Kakao.isInitialized()) Kakao.init(CONFIG.KAKAO_KEY); resolve(!!(Kakao.Share && Kakao.Share.sendDefault)); }
+      try { if (!Kakao.isInitialized()) Kakao.init(CONFIG.KAKAO_KEY); resolve(true); }
       catch { resolve(false); }
     };
     s.onerror = () => resolve(false);
     document.head.appendChild(s);
   });
   return sdk;
+}
+async function withKakao() {
+  if (!CONFIG.KAKAO_SHARE) return false;
+  return (await kakaoSdk()) && !!(window.Kakao && Kakao.Share && Kakao.Share.sendDefault);
 }
 
 export function copyLink(url) {

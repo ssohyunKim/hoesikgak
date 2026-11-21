@@ -25,6 +25,7 @@ const SHEET = "평가";
 const HEAD = ["타임스탬프", "카카오ID", "매장명", "업종", "카카오분류", "주소", "위도", "경도",
   "별점", "인당예산", "룸", "주차", "소음", "적정인원", "한줄평", "작성자", "기준", "검증", "영업상태", "요청ID"];
 const PER_HOUR = 40;   // 한 사람이 한 시간에 남길 수 있는 평가 수
+const CLOSED_MARK = "[폐업] 문 닫았어요";   // js/data.js 의 CLOSED_MARK 와 같아야 한다
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -52,8 +53,12 @@ function doPost(e) {
 
 function rate(d, author) {
   const id = String(d.kakaoId || "").replace(/\D/g, "");
-  const score = Number(d.score);
-  if (!id || !(score >= 0 && score <= 5)) return out({ ok: false, error: "kakaoId 또는 별점이 잘못됐습니다" });
+  /* "문 닫았어요" 신고는 별점이 빈칸이어야 한다. Number("")는 0이라 그냥 두면 0점(비추)이 된다 */
+  const text = clip(d.text, 300);
+  const blank = d.score === "" || d.score === null || d.score === undefined;
+  const score = blank ? "" : Number(d.score);
+  if (blank && text !== CLOSED_MARK) return out({ ok: false, error: "별점이 필요합니다" });
+  if (!id || (!blank && !(score >= 0 && score <= 5))) return out({ ok: false, error: "kakaoId 또는 별점이 잘못됐습니다" });
 
   const cache = CacheService.getScriptCache(), ck = "n:" + author;
   const n = Number(cache.get(ck) || 0);
@@ -66,7 +71,7 @@ function rate(d, author) {
     pickOf(d.room, ["있음", "없음"]), pickOf(d.parking, ["가능", "불가"]),
     pickOf(d.noise, ["조용", "보통", "시끄러움"]),
     pickOf(d.fit, ["4명 이하", "5~8명", "9~12명", "13~20명", "20명 이상"]),
-    clip(d.text, 300), author, clip(d.base, 20), "", "", clip(d.reqId, 60)
+    text, author, clip(d.base, 20), "", "", clip(d.reqId, 60)
   ]);
   return out({ ok: true });
 }

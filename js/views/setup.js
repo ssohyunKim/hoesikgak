@@ -22,9 +22,9 @@ export function render(root, ctx) {
           `<button type="button" class="chip" data-b="${b.key}" aria-pressed="${c.b === b.key}">${b.label}</button>`).join("")}</div></div>
 
       <div class="field"><label>어디 근처?</label>
-        <div class="chips" id="bases">${ctx.offices.map(o =>
+        <div class="chips" id="bases">${ctx.bases().map(o =>
           `<button type="button" class="chip" data-at="${o.key}" aria-pressed="${c.at === o.key}">${o.name}</button>`).join("")}
-          <button type="button" class="chip" data-at="me" aria-pressed="${c.at === "me"}">📍 내 위치</button></div></div>
+          <button type="button" class="chip" data-at="edit">✏️ 기준 바꾸기</button></div></div>
 
       <div class="field"><label>있으면 좋은 것 <span class="note" style="display:inline">없는 곳도 아래쪽에 남아요</span></label>
         <div class="chips" id="wants">${WANTS.map(w =>
@@ -37,7 +37,11 @@ export function render(root, ctx) {
     $("#minus").onclick = () => { c.n = !c.n || c.n <= 1 ? null : c.n - 1; draw(); };
     $("#plus").onclick = () => { c.n = c.n ? Math.min(60, c.n + 1) : 2; draw(); };
     $("#budgets").onclick = e => { const b = e.target.closest("[data-b]"); if (b) { c.b = b.dataset.b; draw(); } };
-    $("#bases").onclick = e => { const b = e.target.closest("[data-at]"); if (b) { c.at = b.dataset.at; draw(); } };
+    $("#bases").onclick = e => {
+      const b = e.target.closest("[data-at]"); if (!b) return;
+      if (b.dataset.at === "edit") return ctx.editPlace();
+      c.at = b.dataset.at; draw();
+    };
     $("#wants").onclick = e => {
       const b = e.target.closest("[data-w]"); if (!b) return;
       const k = b.dataset.w; c.w = c.w.includes(k) ? c.w.filter(x => x !== k) : [...c.w, k]; draw();

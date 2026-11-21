@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   카카오 지도 SDK — 지도, 사옥 좌표, 주변 가게 검색, 옛 데이터 이름 찾기
+   카카오 지도 SDK — 지도, 기준점 좌표, 주변 가게 검색, 옛 데이터 이름 찾기
    SDK 가 막혀도(도메인 미등록 등) 나머지 화면은 돌아가야 해서 모든 함수가 조용히 실패한다
    ═══════════════════════════════════════════════════ */
 import { CONFIG } from "./config.js";
@@ -22,11 +22,11 @@ export function loadMaps() {
   return loading;
 }
 
-/* 사옥 주소를 좌표로. 못 찾으면 설정의 대략값을 그대로 쓴다 */
-export async function geocodeOffices(offices) {
+/* 주소를 좌표로. 못 찾으면 설정의 대략값을 그대로 쓴다 */
+export async function geocodeBases(bases) {
   if (!(await loadMaps())) return;
   const geo = new kakao.maps.services.Geocoder();
-  await Promise.all(offices.map(o => new Promise(done => {
+  await Promise.all(bases.map(o => new Promise(done => {
     geo.addressSearch(o.addr, (res, st) => {
       if (st === kakao.maps.services.Status.OK && res[0]) { o.lat = +res[0].y; o.lng = +res[0].x; }
       done();
@@ -44,7 +44,7 @@ export function placeFromDoc(d, base) {
   return {
     id: "k" + d.id, kakaoId: String(d.id), name: esc(d.place_name), cat: esc(catOf(d.category_name)),
     kcat: esc(d.category_name), addr: esc(d.road_address_name || d.address_name || ""), phone: esc(d.phone || ""),
-    lat, lng, office: base.key, rated: false, score: 0, count: 0, recNo: 0, rec: true,
+    lat, lng, rated: false, score: 0, count: 0, recNo: 0, rec: true,
     budget: 0, fit: null, room: null, parking: null, noise: "", reviews: [], closedReports: 0, isNew: true,
     dist: distOf(base.lat, base.lng, lat, lng)
   };
@@ -91,14 +91,14 @@ export async function searchPlaces(q, base) {
   return docs.map(d => placeFromDoc(d, base));
 }
 
-/* 옛 등록 데이터는 이름뿐이다. 등록된 사옥 근처에서 가까운 순으로 이름을 찾아 좌표와 카카오ID를 붙인다 */
-export async function resolveLegacy(places, offices) {
+/* 옛 등록 데이터는 이름뿐이다. 그 행이 등록된 기준점 근처에서 이름을 찾아 좌표와 카카오ID를 붙인다 */
+export async function resolveLegacy(places, bases) {
   if (!(await loadMaps())) return 0;
   const ps = new kakao.maps.services.Places();
   const need = places.filter(p => p.legacy && !p.lat);
   let found = 0;
   await Promise.all(need.map((p, i) => new Promise(done => setTimeout(() => {
-    const home = offices.find(o => o.key === p.office) || offices[0];
+    const home = bases.find(o => o.key === p.office) || bases[0];
     ps.keywordSearch(p.name.replace(/&[a-z#0-9]+;/g, " "), (res, st) => {
       if (st === kakao.maps.services.Status.OK && res[0]) {
         const d = res[0];

@@ -22,6 +22,9 @@ await p.route('https://cdn.jsdelivr.net/**',r=>r.fulfill({body:'',contentType:'t
 await p.route('https://docs.google.com/spreadsheets/**',r=>{ const u=decodeURIComponent(r.request().url());
   r.fulfill({body:readFileSync(join(HERE,u.includes('sheet=평가')?'rating.csv':'legacy.csv'),'utf8'),contentType:'text/csv'}); });
 await p.route('https://docs.google.com/forms/**',r=>{ posts.push(new URLSearchParams(r.request().postData())); r.fulfill({body:'ok'}); });
+// 기준 위치는 사용자가 직접 등록한다. 이미 등록해 둔 사람으로 시작한다
+await p.addInitScript(()=>{ try{ localStorage.setItem('hoesik.myplace',
+  JSON.stringify({name:'우리 회사',addr:'서울 관악구 보라매로5길 1',lat:37.4993,lng:126.9203})); }catch(e){} });
 // 시각 고정 (테마·점심/저녁)
 await p.addInitScript(h=>{ const D=Date; const fix=new D(2026,10,20,+h,0).getTime(); const off=fix-D.now();
   class FD extends D{ constructor(...a){ a.length?super(...a):super(D.now()+off);} static now(){ return D.now()+off; } }

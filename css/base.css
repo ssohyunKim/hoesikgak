@@ -25,8 +25,36 @@ a { color: inherit; }
   font-weight: 700; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; }
 .iconbtn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 
+/* 로그인 전에는 지도를 열 수 없다. 테마 버튼은 그대로 둔다 */
+body[data-view="login"] #mapBtn { display: none; }
+
 /* ── 공통 ───────────────────────────────────── */
 main { padding: 22px 0 120px; }
+.login { max-width: 420px; padding-top: 24px; }
+/* ── 마이페이지 ─────────────────────────────── */
+.mylist { display: grid; gap: 12px; }
+.myitem { padding: 16px; }
+.myhead { display: flex; align-items: flex-start; gap: 10px; }
+.myhead h3 { margin: 0 0 2px; font-size: 16px; font-weight: 800; }
+.myhead > div { min-width: 0; flex: 1; }
+.myhead .note { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mydate { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.mystars { margin: 10px 0 0; color: var(--accent); font-size: 15px; letter-spacing: 1px; }
+.mystars b { color: var(--text); font-size: 14px; letter-spacing: 0; margin-left: 4px; }
+.mytext { margin: 8px 0 0; font-size: 14px; line-height: 1.6; }
+.myacts { display: flex; gap: 8px; margin-top: 12px; }
+.myacts .btn { flex: 1; padding: 9px 10px; font-size: 13.5px; }
+.myform:not([hidden]) { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+
+/* 카카오 우편번호 검색창이 들어가는 자리 */
+.pcbox { height: 430px; margin-top: 12px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.pcbox[hidden] { display: none; }
+.picked { margin: 0; font-weight: 700; line-height: 1.5; }
+.field input[type="text"], .field input[type="search"] {
+  width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--surface); color: var(--text); font-size: 15px; }
+.login .btn.primary { background: #FEE500; color: #191600; margin-top: 4px; }
+.login .note { line-height: 1.6; margin-top: 14px; }
 h1.q { font-size: 28px; line-height: 1.25; letter-spacing: -.8px; font-weight: 800; margin: 6px 0 6px; }
 h1.q em { font-style: normal; color: var(--accent); }
 .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }

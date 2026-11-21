@@ -69,15 +69,55 @@ test("비추 가게는 주변 검색에 나와도 🆕 로 되살아나지 않�
   assert.equal(list.length, 0);
 });
 
-test("좌표 없는 옛 가게는 같은 사옥일 때만", () => {
-  const here = R({ lat: null, lng: null, office: "보라매" }), there = R({ lat: null, lng: null, office: "마포" });
-  const { list } = run([here, there], []);
-  assert.deepEqual(list.map(p => p.id), [here.id]);
-  assert.equal(list[0].dist, null);
+/* 기준 위치를 사용자가 직접 등록하게 되면서 고정 사옥이 없어졌다.
+   거리를 못 재는 곳은 "가까운지" 판단할 방법이 없으니 후보에서 뺀다 */
+test("좌표 없는 가게는 후보에 오르지 않는다", () => {
+  const noxy = R({ lat: null, lng: null }), ok = R();
+  const { list } = run([noxy, ok], []);
+  assert.deepEqual(list.map(p => p.id), [ok.id]);
 });
 
 test("입력 객체를 바꾸지 않는다", () => {
   const r = R();
   run([r], []);
   assert.equal(r.dist, undefined);
+});
+
+/* ── 업종 좁히기 ───────────────────────────── */
+test("업종 개수는 좁히기 전 전체를 센다 — 눌러서 0곳이 되면 안 된다", () => {
+  const a = R({ cat: "고기" }), b = R({ cat: "고기" }), c2 = R({ cat: "이자카야" }), d = R({ cat: "한식" });
+  const { cats, total, list } = run([a, b, c2, d], []);
+  assert.equal(total, 4);
+  assert.deepEqual(cats, [{ cat: "고기", n: 2 }, { cat: "이자카야", n: 1 }, { cat: "한식", n: 1 }]);
+  assert.equal(list.length, 4, "고르기 전에는 전부 보인다");
+  for (const { cat, n } of cats) {
+    const picked = run([a, b, c2, d], [], cond({ c: cat }));
+    assert.equal(picked.list.length, n, `${cat} 칩의 개수와 실제 목록이 같아야 한다`);
+  }
+});
+
+test("업종을 고르면 목록과 룰렛이 같이 좁아진다", () => {
+  const meat = [R({ cat: "고기" }), R({ cat: "고기" })], izak = R({ cat: "이자카야" });
+  const { list, wheel, cat } = run([...meat, izak], [], cond({ c: "고기" }));
+  assert.equal(cat, "고기");
+  assert.deepEqual(list.map(p => p.cat), ["고기", "고기"]);
+  assert.deepEqual(wheel.map(p => p.cat), ["고기", "고기"], "룰렛에 다른 업종이 섞이면 안 된다");
+});
+
+test("없는 업종을 주소로 넘기면 무시하고 전체를 보여준다", () => {
+  const { list, cat } = run([R({ cat: "고기" })], [], cond({ c: "중식" }));
+  assert.equal(cat, "", "빈 화면 대신 전체로 되돌린다");
+  assert.equal(list.length, 1);
+});
+
+test("상황이 미는 업종이 칩 앞에 온다", () => {
+  const places = [R({ cat: "한식" }), R({ cat: "한식" }), R({ cat: "한식" }), R({ cat: "곱창" })];
+  const { cats } = run(places, [], cond({ s: "team" }));   // 팀 회식 → 고기·곱창
+  assert.equal(cats[0].cat, "곱창", "개수가 적어도 상황에 맞는 업종이 먼저");
+  assert.equal(cats[1].cat, "한식");
+});
+
+test("업종이 하나뿐이면 칩을 그릴 필요가 없다", () => {
+  const { cats } = run([R({ cat: "고기" }), R({ cat: "고기" })], []);
+  assert.equal(cats.length, 1);
 });

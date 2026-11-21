@@ -12,12 +12,12 @@ export async function render(root, ctx, alive) {
   const at = ctx.cond.at || ctx.defaultAt();
   root.innerHTML = `<div class="wrap"><div class="empty"><b>지도를 준비하는 중…</b></div></div>`;
   const base = await ctx.base(at);
-  await ctx.ready;
+  await ctx.load(base);
   const mapsOk = await withTimeout(ctx.mapsOk, 7000, false);
   const near = (mapsOk ? await withTimeout(nearby(base), 8000, []) : []).filter(p => !ctx.closed.has(p.kakaoId));
   if (!alive()) return;
 
-  const inRange = p => p.lat && p.lng ? distOf(base.lat, base.lng, p.lat, p.lng) <= CONFIG.NEAR_RADIUS : (base.key !== "me" && p.office === base.key);
+  const inRange = p => !!(p.lat && p.lng) && distOf(base.lat, base.lng, p.lat, p.lng) <= CONFIG.NEAR_RADIUS;
   const known = ctx.places.filter(inRange).map(p => ({ ...p, dist: p.lat ? distOf(base.lat, base.lng, p.lat, p.lng) : null }));
   const ids = new Set(known.map(p => p.kakaoId));
   const all = known.concat(near.filter(p => !ids.has(p.kakaoId)));
@@ -33,9 +33,9 @@ export async function render(root, ctx, alive) {
 
   root.innerHTML = `<div class="wrap">
     <div class="phead"><h2>${base.key === "me" ? "내 위치" : base.name} 주변</h2></div>
-    <div class="chips" id="bases">${ctx.offices.map(o =>
+    <div class="chips" id="bases">${ctx.bases().map(o =>
       `<button class="chip sm" data-at="${o.key}" aria-pressed="${at === o.key}">${o.name}</button>`).join("")}
-      <button class="chip sm" data-at="me" aria-pressed="${at === "me"}">📍 내 위치</button></div>
+      <button class="chip sm" data-at="edit">✏️ 기준 바꾸기</button></div>
     <div class="mapfilters" id="filters">${FILTERS.map(([k, l]) =>
       `<button class="chip sm" data-f="${k}" aria-pressed="${filter === k}">${l} ${count(k)}</button>`).join("")}</div>
     <div class="picks-split">
@@ -59,6 +59,10 @@ export async function render(root, ctx, alive) {
   };
   draw();
   q("#filters").onclick = e => { const b = e.target.closest("[data-f]"); if (b) { filter = b.dataset.f; draw(); } };
-  q("#bases").onclick = e => { const b = e.target.closest("[data-at]"); if (b) ctx.go("map", { at: b.dataset.at }); };
+  q("#bases").onclick = e => {
+    const b = e.target.closest("[data-at]"); if (!b) return;
+    if (b.dataset.at === "edit") return ctx.editPlace();
+    ctx.go("map", { at: b.dataset.at });
+  };
   q("#list").onclick = e => { const c = e.target.closest(".pc"); if (c) ctx.openSheet(all.find(p => p.id === c.dataset.id)); };
 }
