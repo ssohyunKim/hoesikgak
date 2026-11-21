@@ -31,6 +31,25 @@ body[data-view="login"] #mapBtn { display: none; }
 /* ── 공통 ───────────────────────────────────── */
 main { padding: 22px 0 120px; }
 .login { max-width: 420px; padding-top: 24px; }
+/* 업종 중앙값으로 어림한 값. 실제로 누가 적어낸 값과 구분되게 흐리고 기울인다 */
+.guess { opacity: .75; font-style: italic; }
+.guess::before { content: "~"; margin-right: 1px; }
+
+/* ── 푸터 · 약관 문서 ────────────────────────── */
+.foot { border-top: 1px solid var(--line); padding: 20px 0 32px; margin-top: 40px; }
+.foot .wrap { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+  font-size: 12.5px; color: var(--muted); }
+.foot a { color: var(--muted); font-weight: 700; }
+.doc { max-width: 680px; padding-bottom: 60px; line-height: 1.75; }
+.doc h1 { font-size: 24px; font-weight: 800; margin: 8px 0 4px; letter-spacing: -.5px; }
+.doc h2 { font-size: 16px; font-weight: 800; margin: 28px 0 8px; letter-spacing: -.3px; }
+.doc p, .doc li { font-size: 14.5px; }
+.doc ul { padding-left: 18px; margin: 8px 0; }
+.doc li { margin: 4px 0; }
+.doc-t { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+.doc-t th, .doc-t td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.doc-t th { background: var(--surface-2); font-weight: 800; white-space: nowrap; }
+
 /* ── 가게 검색 (지도 탐색) ───────────────────── */
 .searchbar { display: flex; gap: 8px; margin: 12px 0 0; }
 .searchbar input { flex: 1; min-width: 0; padding: 11px 14px; border: 1px solid var(--line);

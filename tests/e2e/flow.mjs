@@ -51,6 +51,8 @@ const names=await p.$$eval('.pc h3',e=>e.map(x=>x.textContent.replace(/\s+/g,' '
 log('picks:',names.length,'|',names.slice(0,9).join(' / '));
 log('xss present?',await p.evaluate(()=>!!document.querySelector('#view script')), '| has escaped:', names.some(n=>n.includes('<script>')));
 log('dock:',(await p.textContent('.dock')).replace(/\s+/g,' ').trim());
+log('예산 추정 표시:',(await p.$$eval('.pc .guess',e=>e.map(x=>x.textContent.trim()))).slice(0,3).join(' / ')||'(없음)');
+log('실제 예산 표시:',(await p.$$eval('.pc .meta span',e=>e.map(x=>x.textContent.trim()).filter(t=>t.startsWith('인당')))).slice(0,2).join(' / ')||'(없음)');
 await shot('3picks');
 await p.locator('.pc .x').nth(1).click(); await p.waitForSelector('.pc'); await p.waitForTimeout(300);
 log('after x hash:',decodeURIComponent(await p.evaluate(()=>location.hash)));
@@ -59,7 +61,8 @@ await p.click('#spin'); await p.waitForSelector('#wheel'); await shot('5wheel');
 await p.click('#go'); await p.waitForSelector('.result',{timeout:8000});
 log('winner:',(await p.textContent('.result .win')).trim(),'| meta:',(await p.textContent('.result .meta')).trim());
 await shot('6result');
-await p.click('#share'); await p.waitForTimeout(500); log('shared type:',await p.evaluate(()=>window.__shared&&window.__shared.objectType),'| 썸네일:',await p.evaluate(()=>{const s=window.__shared;return (s&&s.content&&s.content.imageUrl||'(없음)').split('/').pop();}));
+await p.click('#share'); await p.waitForTimeout(500); log('shared type:',await p.evaluate(()=>window.__shared&&window.__shared.objectType),'| 링크:',await p.evaluate(()=>{const s=window.__shared;const l=(s.content&&s.content.link)||s.link;return (l&&l.webUrl||'').replace('https://www.hoesikgak.com','');}),
+  '| 썸네일:',await p.evaluate(()=>{const s=window.__shared;return (s&&s.content&&s.content.imageUrl||'(없음)').split('/').pop();}));
 await p.click('#detail'); await p.waitForTimeout(400); log('sheet over stage:',await p.locator('#sheet.on').count()); await shot('7sheet');
 await p.keyboard.press('Escape');
 // 흐름 2: 다음 날 카드
@@ -67,8 +70,13 @@ await p.evaluate(()=>{ const s=JSON.parse(localStorage.getItem('hoesik.lastSpin'
 await p.goto('https://www.hoesikgak.com/#/'); await p.waitForTimeout(800);
 log('due card:',await p.locator('#due').count(), (await p.textContent('#due h3').catch(()=>'')));
 await shot('8due');
-await p.click('#due .star[data-v="4"]'); await p.fill('#due textarea','팀 회식 딱 좋음'); await p.click('#due [type=submit]'); await p.waitForTimeout(600);
-log('post1 별점/한줄평:',posts[0]&&posts[0].get('entry.1586533610'),posts[0]&&posts[0].get('entry.134488005'),'| due gone:',await p.locator('#due').count()===0);
+// 어땠어요? 카드가 예산·룸·주차·소음을 같이 묻는가
+log('due 질문들:',(await p.$$eval('#due .rrow span:first-child',e=>e.map(x=>x.textContent.trim()))).join(' / '));
+await p.click('#due .star[data-v="4"]');
+await p.click('#due .chip[data-k="budget"][data-v="40000"]');
+await p.click('#due .chip[data-k="room"][data-v="있음"]');
+await p.fill('#due textarea','팀 회식 딱 좋음'); await p.click('#due [type=submit]'); await p.waitForTimeout(600);
+log('post1 별점/예산/룸:',posts[0]&&posts[0].get('entry.1586533610'),posts[0]&&posts[0].get('entry.240415988'),posts[0]&&posts[0].get('entry.1548194720'),'| due gone:',await p.locator('#due').count()===0);
 // 흐름 3: 지도 탐색 → 비추 필터 → 상세 평가
 await p.click('#mapBtn'); await p.waitForSelector('#filters',{timeout:15000}); await p.waitForTimeout(400);
 log('filters:',(await p.textContent('#filters')).replace(/\s+/g,' ').trim());

@@ -4,7 +4,7 @@
 import { CONFIG } from "./config.js";
 import { parseHash, buildHash } from "./router.js";
 import { applyTheme, toggleTheme } from "./theme.js";
-import { loadPlaces, currentPlaces, closedIds, db } from "./data.js";
+import { loadPlaces, currentPlaces, closedIds, budgetByCat, db } from "./data.js";
 import { loadMaps, geocodeBases, resolveLegacy } from "./kakao.js";
 import { toast } from "./share.js";
 import * as auth from "./auth.js";
@@ -19,9 +19,10 @@ import * as spin from "./views/spin.js";
 import * as mapView from "./views/map.js";
 import * as mypage from "./views/mypage.js";
 import * as room from "./views/room.js";
+import * as placeView from "./views/place.js";
 import * as sheet from "./views/sheet.js";
 
-const VIEWS = { home, setup, picks, spin, map: mapView, mypage, room };
+const VIEWS = { home, setup, picks, spin, map: mapView, mypage, room, place: placeView };
 /* 옛 데이터의 위치를 이름으로 찾을 때만 쓰는 기준점. 화면에는 안 나온다 */
 const LEGACY_BASES = (CONFIG.LEGACY_BASES || []).map(o => ({ ...o }));
 const ME = { key: "me", name: "내 위치", lat: 0, lng: 0 };
@@ -31,6 +32,7 @@ export const ctx = {
   view: "home", cond: {}, meal: null,
   me: null,
   places: [],
+  catBudget: new Map(),   // 업종 → {budget, n} 중앙값. 표시 전용
   closed: new Set(),  // 문 닫았다는 신고가 모인 카카오ID — 주변 검색 결과에서도 뺀다
   dataOk: false,
   ready: null,        // 시트를 다 읽으면 끝나는 Promise
@@ -63,7 +65,11 @@ export const ctx = {
   afterPlace() { ctx.needPlace = false; ctx.go("home", {}); render(); },
   editPlace() { ctx.needPlace = true; render(); },
   needPlace: false,
-  refresh() { ctx.places = currentPlaces(); ctx.closed = closedIds(db.rows); },
+  refresh() {
+    ctx.places = currentPlaces();
+    ctx.closed = closedIds(db.rows);
+    ctx.catBudget = budgetByCat(ctx.places);   /* 예산이 빈 곳에 어림값을 보여주려고 */
+  },
   /* 기준 위치가 바뀌면 그 주변 평가를 다시 읽는다. 같은 자리면 읽어둔 걸 쓴다.
      (배포 전 = CONFIG.API_BASE 가 비어 있으면 예전처럼 시트 전체를 한 번만 읽는다) */
   load(base) {

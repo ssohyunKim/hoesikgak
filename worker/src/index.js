@@ -5,6 +5,7 @@
      POST /auth/kakao     카카오 인가 코드 → 회식각 세션 토큰
      POST /me             내 기준 위치(우리 회사) 읽기·저장
      GET  /rows           기준 위치 반경 안의 평가 행 (D1)
+     GET  /place?k=       가게 한 곳 (공유 링크로 들어온 사람용)
      POST /my             내가 남긴 평가 보기·한 줄 지우기
      POST /room[/get|/vote|/close]  투표방 만들기·보기·투표·마감
      POST /rate           로그인한 사람의 별점을 D1 에 쓴다
@@ -41,6 +42,7 @@ export default {
         case "/auth/kakao": if (req.method === "POST") return withCors(await login(req, env), cors); break;
         case "/me": if (req.method === "POST") return withCors(await me(req, env), cors); break;
         case "/rows": if (req.method === "GET") return withCors(await rows(req, env), cors); break;
+        case "/place": if (req.method === "GET") return withCors(await onePlace(req, env), cors); break;
         case "/my": if (req.method === "POST") return withCors(await my(req, env), cors); break;
         case "/room": if (req.method === "POST") return withCors(await roomCreate(req, env), cors); break;
         case "/room/get": if (req.method === "POST") return withCors(await roomGet(req, env), cors); break;
@@ -135,6 +137,29 @@ async function rows(req, env) {
   ).bind(lat - dLat, lat + dLat, lng - dLng, lng + dLng).all();
 
   return json({ ok: true, rows: (results || []).map(x => ({
+    kakaoId: x.kakao_id, name: x.name, cat: x.cat, kcat: x.kcat, addr: x.addr,
+    lat: x.lat, lng: x.lng, author: x.author, score: x.score, budget: x.budget,
+    room: x.room, parking: x.parking, noise: x.noise, fit: x.fit,
+    text: x.text, closed: x.closed, reqId: x.req_id
+  })) });
+}
+
+/* ── 가게 한 곳 ─────────────────────────────
+   GET /place?k=카카오ID
+   공유 링크(#/place?k=…)로 들어온 사람에게 그 가게만 보여준다.
+   기준 위치와 무관해야 해서 반경 조회(/rows)로는 안 된다 — 서울 사람이
+   부산 가게 링크를 받아도 열려야 한다 */
+async function onePlace(req, env) {
+  const k = String(new URL(req.url).searchParams.get("k") || "").replace(/\D/g, "");
+  if (!k) return json({ ok: false, error: "bad_request" }, 400);
+  if (!env.DB) return json({ ok: false, error: "no_db" }, 501);
+  const { results } = await env.DB.prepare(
+    `SELECT p.kakao_id, p.name, p.cat, p.kcat, p.addr, p.lat, p.lng,
+            r.author, r.score, r.budget, r.room, r.parking, r.noise, r.fit, r.text, r.closed, r.req_id
+       FROM places p JOIN ratings r ON r.kakao_id = p.kakao_id
+      WHERE p.kakao_id = ?1`).bind(k).all();
+  if (!results || !results.length) return json({ ok: false, error: "not_found" }, 404);
+  return json({ ok: true, rows: results.map(x => ({
     kakaoId: x.kakao_id, name: x.name, cat: x.cat, kcat: x.kcat, addr: x.addr,
     lat: x.lat, lng: x.lng, author: x.author, score: x.score, budget: x.budget,
     room: x.room, parking: x.parking, noise: x.noise, fit: x.fit,

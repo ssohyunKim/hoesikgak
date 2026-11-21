@@ -35,7 +35,7 @@ export async function render(root, ctx, alive) {
   const summary = [c.n ? `${c.n}명` : "인원 무관", budgetOf(c.b).key === "any" ? "예산 무관" : budgetOf(c.b).label, base.key === "me" ? "내 위치" : base.name].join(" · ");
   const wide = matchMedia("(min-width: 900px)").matches;
 
-  const section = (label, items) => items.length ? `${label ? `<p class="section-label">${label}</p>` : ""}${items.map(p => cardHtml(p, { removable: true })).join("")}` : "";
+  const section = (label, items) => items.length ? `${label ? `<p class="section-label">${label}</p>` : ""}${items.map(p => cardHtml(p, { removable: true, catBudget: ctx.catBudget })).join("")}` : "";
   const listHtml = list.length
     ? `<div class="plist">${section("", good)}${section("🆕 아직 평가 없는 근처 가게", fresh)}${section("평이 낮은 곳 · 룰렛에서 빠져요", low)}</div>`
     : `<div class="empty"><b>근처에 후보가 없어요</b>${!ctx.dataOk && !mapsOk ? "데이터를 불러오지 못했어요. 잠시 뒤 새로고침해 주세요." : "기준 위치나 조건을 바꿔보세요."}</div>`;

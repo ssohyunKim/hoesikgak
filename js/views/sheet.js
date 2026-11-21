@@ -11,6 +11,8 @@ export function open(p, ctx) {
   const el = $("#sheet");
   const stars = n => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
   const mapHref = p.kakaoId ? `https://place.map.kakao.com/${p.kakaoId}` : `https://map.kakao.com/?q=${encodeURIComponent(p.name)}`;
+  /* 예산이 비어 있으면 같은 업종 중앙값으로 어림만 보여준다 (저장하지 않는다) */
+  const guess = !p.budget && ctx.catBudget && ctx.catBudget.get(p.cat);
   el.innerHTML = `<div class="wrap">
     <div class="grab"></div>
     <div class="hd"><h2>${p.name}</h2><button class="close" id="shClose" aria-label="닫기">✕</button></div>
@@ -29,7 +31,10 @@ export function open(p, ctx) {
     </div>
 
     <dl class="facts">
-      <dt>인당 예산</dt><dd>${p.budget ? won(p.budget) + "원 쯤" : U}</dd>
+      <dt>인당 예산</dt><dd>${p.budget ? won(p.budget) + "원 쯤"
+        : guess ? `<span class="guess">${p.cat} 보통 ${won(guess.budget)}원</span>
+            <span class="note" style="display:block">평가 ${guess.n}곳으로 어림한 값이에요. 다녀오셨다면 알려주세요.</span>`
+        : U}</dd>
       <dt>적정 인원</dt><dd>${p.fit ? p.fit.label : U}</dd>
       <dt>룸</dt><dd>${yn(p.room, "있음", "없음")}</dd>
       <dt>주차</dt><dd>${yn(p.parking, "가능", "불가")}</dd>

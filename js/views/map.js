@@ -56,7 +56,7 @@ export async function render(root, ctx, alive) {
   let map = null;
   const draw = () => {
     const items = found ? found.items : shown();
-    q("#list").innerHTML = items.length ? items.slice(0, 60).map(p => cardHtml(p)).join("")
+    q("#list").innerHTML = items.length ? items.slice(0, 60).map(p => cardHtml(p, { catBudget: ctx.catBudget })).join("")
       : `<div class="empty"><b>${found ? "못 찾았어요" : filter === "bad" ? "비추로 올라온 곳이 없어요" : "표시할 곳이 없어요"}</b>${
           found ? "이름을 조금 다르게 적어보세요." : ""}</div>`;
     q("#filters").hidden = !!found;

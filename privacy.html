@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>개인정보 처리방침 — 회식각</title>
+<meta name="robots" content="index,follow">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+<header class="top"><div class="wrap"><a class="logo" href="./">회식<b>각</b></a></div></header>
+<main>
+<article class="wrap doc">
+  <h1>개인정보 처리방침</h1>
+  <p class="note">시행일 2026년 11월 21일</p>
+
+  <p>회식각(이하 “서비스”)은 회식 장소를 함께 고르기 위한 비영리 사이드 프로젝트입니다.
+    서비스는 이름·이메일·전화번호 같은 신원 정보를 수집하지 않으며,
+    아래에 적은 항목만 처리합니다.</p>
+
+  <h2>1. 수집하는 항목</h2>
+  <table class="doc-t">
+    <tr><th>항목</th><th>내용</th><th>수집 시점</th></tr>
+    <tr><td>이용자 식별값</td>
+        <td>카카오 회원번호를 복원 불가능한 방식(HMAC-SHA256)으로 변환한 값.
+            <b>카카오 회원번호 자체는 저장하지 않습니다.</b></td>
+        <td>카카오 로그인 시</td></tr>
+    <tr><td>기준 위치</td><td>이용자가 직접 등록한 회사(또는 기준 장소)의 이름·주소·좌표</td><td>기준 위치 등록 시</td></tr>
+    <tr><td>평가 내용</td><td>가게, 별점, 인당 예산, 룸·주차·소음·적정 인원, 한 줄 평, 작성 시각</td><td>평가를 남길 때</td></tr>
+    <tr><td>투표 내용</td><td>투표방 식별값, 선택한 가게</td><td>투표방에서 투표할 때</td></tr>
+  </table>
+
+  <p><b>수집하지 않는 것</b> — 카카오 로그인에서 프로필·이메일 등 어떤 동의항목도 요청하지 않습니다.
+    카카오가 발급한 접근 토큰도 보관하지 않고 로그인 처리 직후 폐기합니다.</p>
+
+  <h2>2. 기기 위치</h2>
+  <p>“내 위치” 기능을 누른 경우에만 브라우저가 기기 위치를 알려줍니다.
+    이 값은 주변 가게를 찾기 위해 <b>그 화면에서만 사용되고 서버에 저장되지 않습니다.</b>
+    위치 권한은 브라우저 설정에서 언제든 끌 수 있습니다.</p>
+
+  <h2>3. 이용 목적</h2>
+  <ul>
+    <li>기준 위치 주변의 회식 장소 추천</li>
+    <li>같은 사람이 같은 가게에 남긴 평가를 하나로 묶기(1인 1평가)</li>
+    <li>투표방에서 1인 1표 보장</li>
+    <li>도배·중복 등록 방지</li>
+  </ul>
+
+  <h2>4. 보유 기간과 파기</h2>
+  <ul>
+    <li>평가·기준 위치는 이용자가 지우거나 연결을 끊을 때까지 보관합니다.</li>
+    <li>마이페이지에서 남긴 평가를 하나씩 지울 수 있습니다.</li>
+    <li><b>카카오 계정 설정에서 회식각 연결을 끊으면</b> 카카오가 서비스에 알려주고,
+      서비스는 그 이용자의 <b>평가와 기준 위치를 모두 즉시 삭제</b>합니다.
+      (카카오톡 &gt; 설정 &gt; 카카오계정 &gt; 연결된 서비스 관리)</li>
+    <li>로그인 상태(세션)는 30일이 지나면 자동으로 만료됩니다.</li>
+  </ul>
+
+  <h2>5. 처리 위탁 및 저장 위치</h2>
+  <table class="doc-t">
+    <tr><th>수탁자</th><th>역할</th></tr>
+    <tr><td>Cloudflare, Inc.</td><td>데이터 보관(D1·KV)과 API 실행</td></tr>
+    <tr><td>카카오</td><td>로그인, 지도·장소 검색, 공유</td></tr>
+    <tr><td>GitHub, Inc.</td><td>웹사이트 호스팅</td></tr>
+  </table>
+  <p class="note">데이터는 위 사업자의 해외 서버에 보관될 수 있습니다.</p>
+
+  <h2>6. 제3자 제공</h2>
+  <p>이용자의 정보를 판매하거나 광고 목적으로 제공하지 않습니다.
+    법령에 따른 요청이 있는 경우에만 관련 절차에 따라 제공합니다.</p>
+
+  <h2>7. 이용자의 권리</h2>
+  <p>본인의 평가를 언제든 조회·수정·삭제할 수 있고(마이페이지),
+    카카오 연결을 끊어 전체 삭제를 요청할 수 있습니다.
+    그 밖의 문의는 아래 연락처로 보내주세요.</p>
+
+  <h2>8. 쿠키 등</h2>
+  <p>광고·분석 목적의 쿠키나 추적 도구를 쓰지 않습니다.
+    로그인 상태, 화면 테마, 내가 남긴 평가 등은 이용자 브라우저의 저장소(localStorage)에만 보관되며
+    브라우저 데이터를 지우면 함께 사라집니다.</p>
+
+  <h2>9. 문의</h2>
+  <p>개인정보 관련 문의: <a href="mailto:sohyun.k@sk.com">sohyun.k@sk.com</a></p>
+
+  <h2>10. 변경</h2>
+  <p>내용이 바뀌면 이 페이지에 변경된 시행일과 함께 공지합니다.</p>
+
+  <p class="mealsw"><a class="link" href="./">← 회식각으로</a></p>
+</article>
+</main>
+</body>
+</html>

@@ -123,17 +123,24 @@ export function rateFormHtml(p, { compact = false, initial = null } = {}) {
   const mine = initial || myRating(p.kakaoId) || {};
   const stars = [1, 2, 3, 4, 5].map(n =>
     `<button type="button" class="star" data-v="${n}" aria-pressed="${mine.score >= n}" aria-label="${n}점">★</button>`).join("");
-  const chips = Object.entries(OPTS).map(([k, [label, opts]]) => `<div class="rrow"><span>${label}</span><div class="chips">${
-    opts.map(([v, t]) => `<button type="button" class="chip sm" data-k="${k}" data-v="${v}" aria-pressed="${String(mine[k]) === v}">${t}</button>`).join("")
-  }</div></div>`).join("");
+  const row = k => {
+    const [label, opts] = OPTS[k];
+    return `<div class="rrow"><span>${label}</span><div class="chips">${
+      opts.map(([v, t]) => `<button type="button" class="chip sm" data-k="${k}" data-v="${v}" aria-pressed="${String(mine[k]) === v}">${t}</button>`).join("")
+    }</div></div>`;
+  };
+  /* 예산·룸·주차·소음은 조건 필터가 바로 쓰는 값이다. 지도 API 어디에도 없어서
+     그 자리에 있었던 사람이 알려주지 않으면 영영 비어 있는다. 접어두지 않는다.
+     (적정인원만 상세 화면에서 묻는다. 한 번 가본 걸로 가늠하기 어려운 값이라) */
+  const PRIMARY = ["budget", "room", "parking", "noise"];
   return `<form class="rate" novalidate>
     <div class="stars" role="group" aria-label="별점">${stars}
       <button type="button" class="chip sm zero" data-v="0" aria-pressed="${mine.score === 0}">0점 · 별점도 아깝다</button></div>
     <p class="note">1점 이하는 비추 명단으로 가고 룰렛에서 빠져요.</p>
+    ${PRIMARY.map(row).join("")}
+    ${compact ? "" : row("fit")}
     <label class="flabel">코멘트 <em>선택</em>
       <textarea name="text" maxlength="300" rows="${compact ? 2 : 3}" placeholder="좋았던 점, 아쉬운 점, 예약 요령 뭐든. 안 써도 돼요.">${esc(mine.text || "")}</textarea></label>
-    ${compact ? "" : `<details class="more"${["budget", "fit", "room", "parking", "noise"].some(k => mine[k]) ? " open" : ""}>
-      <summary>더 알려주면 좋은 것 (선택)</summary>${chips}</details>`}
     <button type="submit" class="btn primary block" disabled>${mine.score !== undefined ? "평가 고치기" : "남기기"}</button>
   </form>`;
 }

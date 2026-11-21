@@ -95,6 +95,11 @@ await p.route(API + '/room/vote', r => { const b = JSON.parse(r.request().postDa
 await p.route(API + '/room/close', r => { const b = JSON.parse(r.request().postData());
   ROOMS.t1.closed = true; ROOMS.t1.winner = b.winner;
   r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true }) }); });
+await p.route(API + '/place*', r => { const k = new URL(r.request().url()).searchParams.get('k');
+  r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true, rows:[
+    { kakaoId:k, name:'공유받은집', cat:'고기', kcat:'음식점 > 한식', addr:'서울 관악구 9',
+      lat:37.4999, lng:126.9214, author:'k_z1', score:5, budget:45000, room:'있음',
+      parking:null, noise:'보통', fit:'5~8명', text:'공유 링크로 들어옴', closed:0, reqId:'z1' }] }) }); });
 await p.route(API + '/rate', r => { seen.rate.push(JSON.parse(r.request().postData()));
   r.fulfill({ contentType: 'application/json', body: JSON.stringify({ ok: true }) }); });
 
@@ -229,6 +234,19 @@ log('   화면 반영:', (await p.textContent('.mystars')).replace(/\s+/g,' ').t
 await p.click('[data-del="900003"]'); await p.waitForTimeout(700);
 log('   지운 뒤 목록:', (await p.$$eval('.myitem h3', e => e.map(x => x.textContent.trim()))).join(' / ') || '(없음)');
 log('   remove 호출:', JSON.stringify(myCalls.filter(c => c.remove).map(c => c.remove)));
+
+/* ── 3-c. 공유 딥링크 + 푸터 ─────────────────── */
+await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+await p.goto('https://www.hoesikgak.com/#/place?k=777001'); await p.waitForTimeout(900);
+log('⑪ 공유 링크로 들어옴:', (await p.textContent('h1.q')).trim(),
+  '| 상세 시트 열림:', await p.locator('#sheet.on').count() === 1);
+log('   시트 내용:', (await p.textContent('#sheet h2')).trim(),
+  '| 평가 폼:', await p.locator('#sheet .rate').count() === 1);
+await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+log('   푸터:', (await p.$$eval('.foot a', e => e.map(x => x.textContent.trim() + '→' + x.getAttribute('href')))).join(' | '));
+const mf = await p.evaluate(() => document.querySelector('link[rel=manifest]')?.href || '(없음)');
+log('   manifest:', mf.split('/').pop(), '| theme-color:',
+  await p.evaluate(() => document.querySelector('meta[name=theme-color]')?.content));
 
 /* ── 4. 세션 만료 ──────────────────────────── */
 await p.evaluate(() => { const s = JSON.parse(localStorage.getItem('hoesik.session')); s.exp = Math.floor(Date.now() / 1000) - 10;

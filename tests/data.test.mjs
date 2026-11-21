@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseCSV, normHead, starScore, parseHead, roomOf, tri, catOf,
-  aggregate, legacyPlaces, combine, mergeAll, mergePending, CLOSED_MARK, fromApi } from "../js/data.js";
+  aggregate, legacyPlaces, combine, mergeAll, mergePending, CLOSED_MARK, fromApi, budgetByCat } from "../js/data.js";
 
 const row = o => ({ "카카오ID": "100", "매장명": "삼겹리에", "업종": "고기", "카카오분류": "음식점 > 한식 > 육류,고기",
   "주소": "서울 관악구 x", "위도": "37.4995", "경도": "126.9210", "별점": "4", "작성자": "A", ...o });
@@ -156,4 +156,24 @@ test("fromApi: 0점은 빈 칸과 다르다", () => {
   const [p] = aggregate([r]);
   assert.equal(p.rated, true);
   assert.equal(p.rec, false, "0점은 비추");
+});
+
+/* ── 업종 중앙값 (예산 어림) ─────────────────── */
+test("budgetByCat: 표본이 적은 업종은 내놓지 않는다", () => {
+  const P = (cat, budget) => ({ cat, budget });
+  const m = budgetByCat([
+    P("고기", 30000), P("고기", 40000), P("고기", 50000),   // 3곳 → 나옴
+    P("일식", 60000), P("일식", 80000),                     // 2곳 → 안 나옴
+    P("한식", 0), P("한식", 0), P("한식", 0),               // 예산 없음 → 안 나옴
+  ]);
+  assert.equal(m.get("고기").budget, 40000, "중앙값");
+  assert.equal(m.get("고기").n, 3);
+  assert.equal(m.get("일식"), undefined, "표본 3곳 미만은 어림도 안 한다");
+  assert.equal(m.get("한식"), undefined);
+});
+
+test("budgetByCat: 추정에 쓰인 건 실제 값뿐이다", () => {
+  const m = budgetByCat([{ cat: "고기", budget: 30000 }, { cat: "고기", budget: 30000 },
+    { cat: "고기", budget: 30000 }, { cat: "고기", budget: null }, { cat: "고기" }]);
+  assert.equal(m.get("고기").n, 3, "빈 칸은 세지 않는다");
 });

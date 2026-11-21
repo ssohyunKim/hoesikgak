@@ -1,0 +1,17 @@
+{
+  "name": "회식각",
+  "short_name": "회식각",
+  "description": "상황만 고르면 회식 장소를 룰렛이 정해줘요.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14161C",
+  "theme_color": "#14161C",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

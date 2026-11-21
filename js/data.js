@@ -182,6 +182,24 @@ export function combine(b, a) {
   p.rec = recOf(p);
   return p;
 }
+/* ── 업종별 인당예산 중앙값 ──────────────────
+   지도 API 에는 가격이 없고, 메뉴 가격을 안다 해도 "술 포함 인당 얼마"는 알 수 없다.
+   그래서 비어 있는 칸은 같은 업종 사람들이 적어낸 값으로 어림만 보여준다.
+   화면에 "추정"으로만 쓰고 저장하지 않는다 — 추정값이 실제 데이터인 척 쌓이면
+   예산 필터가 망가진다. 표본이 MIN_SAMPLE 미만인 업종은 아예 내놓지 않는다 */
+const MIN_SAMPLE = 3;
+export function budgetByCat(places, min = MIN_SAMPLE) {
+  const by = new Map();
+  places.forEach(p => {
+    if (!p.budget || !p.cat) return;
+    if (!by.has(p.cat)) by.set(p.cat, []);
+    by.get(p.cat).push(p.budget);
+  });
+  const out = new Map();
+  by.forEach((nums, cat) => { if (nums.length >= min) out.set(cat, { budget: median(nums), n: nums.length }); });
+  return out;
+}
+
 /* 문 닫았다는 신고가 충분히 모인 카카오ID */
 export function closedIds(rows) {
   const by = new Map();
@@ -245,6 +263,19 @@ async function apiRows(base, radius) {
   const d = await res.json();
   if (!d.ok) throw new Error(d.error || "api");
   return d.rows.map(fromApi);
+}
+
+/* 공유 링크로 들어온 가게 한 곳. 기준 위치와 무관하게 읽는다 */
+export async function loadOne(kakaoId) {
+  if (!CONFIG.API_BASE || !kakaoId) return null;
+  try {
+    const u = `${String(CONFIG.API_BASE).replace(/\/+$/, "")}/place?k=${encodeURIComponent(kakaoId)}`;
+    const res = await fetch(u);
+    if (!res.ok) return null;
+    const d = await res.json();
+    if (!d.ok || !d.rows.length) return null;
+    return aggregate(d.rows.map(fromApi))[0] || null;
+  } catch { return null; }
 }
 
 /* base 를 주면 D1 에서 그 주변만, 안 주면(=배포 전) 지금까지처럼 시트 전체를 읽는다 */

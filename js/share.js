@@ -71,20 +71,24 @@ export function shareSite() {
   });
 }
 
-/* 결과 공유. 주소가 있으면 위치 템플릿(지도 말풍선), 없으면 글만. back 은 이 후보 화면 주소 */
+/* 회식각 안의 그 가게로 바로 여는 주소. 받은 사람이 평가·위치를 다 볼 수 있다 */
+export const placeUrl = kakaoId => SITE.replace(/\/?$/, "/") + "#/place?k=" + encodeURIComponent(kakaoId);
+
+/* 결과 공유. 주소가 있으면 위치 템플릿(지도 말풍선), 없으면 글만 */
 export function sharePlace(p, { headline = "", back = SITE } = {}) {
   const title = unesc(p.name);
   const desc = [headline, [unesc(p.cat), p.rated ? `★${p.score.toFixed(1)}` : "", p.budget ? `인당 ${won(p.budget)}원` : ""]
     .filter(Boolean).join(" · ")].filter(Boolean).join("\n");
   const addr = unesc(p.addr || "");
-  const mapUrl = p.kakaoId ? `https://place.map.kakao.com/${p.kakaoId}` : SITE;
+  /* 카카오맵으로 보내면 회식각으로 돌아올 길이 없다. 우리 주소로 보낸다 */
+  const url = p.kakaoId ? placeUrl(p.kakaoId) : back;
   send({
-    text: [title, desc, addr].filter(Boolean).join("\n"), url: p.kakaoId ? mapUrl : back,
+    text: [title, desc, addr].filter(Boolean).join("\n"), url,
     kakao: addr
       ? { objectType: "location", address: addr, addressTitle: title,
           content: { title, description: cut(desc, 100),
-            imageUrl: resultImg(), imageWidth: 1600, imageHeight: 800, link: link(back) },
-          buttons: [{ title: "회식각에서 보기", link: link(back) }] }
-      : { objectType: "text", text: cut([title, desc].join("\n")), link: link(back), buttonTitle: "회식각에서 보기" }
+            imageUrl: resultImg(), imageWidth: 1600, imageHeight: 800, link: link(url) },
+          buttons: [{ title: "회식각에서 보기", link: link(url) }] }
+      : { objectType: "text", text: cut([title, desc].join("\n")), link: link(url), buttonTitle: "회식각에서 보기" }
   });
 }

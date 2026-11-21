@@ -21,12 +21,14 @@ export function baseEl(base) {
   return el;
 }
 
-export function cardHtml(p, { removable = false } = {}) {
+export function cardHtml(p, { removable = false, catBudget = null } = {}) {
+  const guess = !p.budget && catBudget && catBudget.get(p.cat);
   const meta = [
     p.rated ? `<span class="st">★ ${p.score.toFixed(1)}</span><span>${p.count}명</span>` : "",
     p.cat ? `<span>${p.cat}</span>` : "",
     p.dist != null ? `<span>${fmtDist(p.dist)}</span>` : "",
-    p.budget ? `<span>인당 ${man(p.budget)}</span>` : "",
+    p.budget ? `<span>인당 ${man(p.budget)}</span>`
+      : guess ? `<span class="guess">${p.cat} 보통 ${man(guess.budget)}</span>` : "",
     p.room === true ? "<span>룸</span>" : "",
   ].join("");
   const first = (p.reviews || []).find(r => !r.bad) || (p.reviews || [])[0];
