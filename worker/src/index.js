@@ -7,7 +7,7 @@
      GET  /rows           기준 위치 반경 안의 평가 행 (D1)
      GET  /place?k=       가게 한 곳 (공유 링크로 들어온 사람용)
      POST /my             내가 남긴 평가 보기·한 줄 지우기
-     POST /room[/get|/vote|/close]  투표방 만들기·보기·투표·마감
+     POST /room[/get|/vote|/edit|/close]  투표방 만들기·보기·투표·후보고치기·마감
      POST /rate           로그인한 사람의 별점을 D1 에 쓴다
      GET|POST /kakao/unlink   카카오 "연결 끊기 웹훅"
      POST /kakao/events   카카오 "계정 상태 변경 웹훅" (SET, RFC 8417/8935)
@@ -47,6 +47,7 @@ export default {
         case "/room": if (req.method === "POST") return withCors(await roomCreate(req, env), cors); break;
         case "/room/get": if (req.method === "POST") return withCors(await roomGet(req, env), cors); break;
         case "/room/vote": if (req.method === "POST") return withCors(await roomVote(req, env), cors); break;
+        case "/room/edit": if (req.method === "POST") return withCors(await roomEdit(req, env), cors); break;
         case "/room/close": if (req.method === "POST") return withCors(await roomClose(req, env), cors); break;
         case "/rate": if (req.method === "POST") return withCors(await rate(req, env), cors); break;
         case "/kakao/unlink": return await unlinkHook(req, env, ctx);
@@ -281,6 +282,52 @@ async function roomVote(req, env) {
     `INSERT INTO votes (room_id, voter, kakao_id, created_at) VALUES (?1,?2,?3,?4)
        ON CONFLICT(room_id, voter) DO UPDATE SET kakao_id = excluded.kakao_id, created_at = excluded.created_at`
   ).bind(id, s.uid, kakaoId, Math.floor(Date.now() / 1000)).run();
+  return json({ ok: true });
+}
+
+/* ── 후보 고치기 ─────────────────────────────
+   {token, id, add:{kakaoId,name,…}} | {token, id, remove:"카카오ID"}
+   방장만. 투표 중에 아무나 빼면 이미 던진 표가 사라져서 혼란스럽다.
+   뺀 가게에 달려 있던 표도 같이 지운다 — 안 그러면 집계에 유령 표가 남는다 */
+async function roomEdit(req, env) {
+  const body = await req.json().catch(() => null);
+  const s = body && await verifySession(env, body.token);
+  if (!s) return json({ ok: false, error: "login" }, 401);
+  if (!env.DB) return json({ ok: false, error: "no_db" }, 501);
+  const id = String(body.id || "").slice(0, 16);
+
+  const r = await env.DB.prepare("SELECT owner, picks, closed FROM rooms WHERE id = ?1").bind(id).first();
+  if (!r) return json({ ok: false, error: "not_found" }, 404);
+  if (r.owner !== s.uid) return json({ ok: false, error: "not_owner" }, 403);
+  if (r.closed) return json({ ok: false, error: "closed" }, 409);
+  let picks = []; try { picks = JSON.parse(r.picks); } catch { /* 깨졌으면 새로 */ }
+
+  if (body.remove) {
+    const k = String(body.remove).replace(/\D/g, "");
+    if (picks.length <= 2) return json({ ok: false, error: "need_picks" }, 400);
+    const next = picks.filter(p => p.kakaoId !== k);
+    if (next.length === picks.length) return json({ ok: false, error: "not_found" }, 404);
+    await env.DB.batch([
+      env.DB.prepare("UPDATE rooms SET picks = ?2 WHERE id = ?1").bind(id, JSON.stringify(next)),
+      env.DB.prepare("DELETE FROM votes WHERE room_id = ?1 AND kakao_id = ?2").bind(id, k)
+    ]);
+    return json({ ok: true });
+  }
+
+  const a = body.add || {};
+  const k = String(a.kakaoId || "").replace(/\D/g, "");
+  if (!k || !a.name) return json({ ok: false, error: "bad_request" }, 400);
+  if (picks.some(p => p.kakaoId === k)) return json({ ok: false, error: "dup" }, 409);
+  if (picks.length >= ROOM_MAX_PICKS) return json({ ok: false, error: "too_many" }, 400);
+
+  /* 이미 평가가 쌓인 곳이면 별점·예산을 붙여 준다. 카드가 비어 보이지 않게 */
+  const known = await env.DB.prepare(
+    `SELECT AVG(score) AS score, CAST(AVG(budget) AS INT) AS budget
+       FROM ratings WHERE kakao_id = ?1 AND score IS NOT NULL`).bind(k).first();
+  picks.push({ kakaoId: k, name: clip(a.name, 60), cat: clip(a.cat, 20),
+    score: (known && known.score) || 0, budget: Number(a.budget) || (known && known.budget) || 0,
+    dist: Number(a.dist) || 0 });
+  await env.DB.prepare("UPDATE rooms SET picks = ?2 WHERE id = ?1").bind(id, JSON.stringify(picks)).run();
   return json({ ok: true });
 }
 

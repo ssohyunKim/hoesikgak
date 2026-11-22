@@ -92,6 +92,13 @@ await p.route(API + '/room/vote', r => { const b = JSON.parse(r.request().postDa
   ROOMS.t1.votes.me = b.kakaoId;
   ROOMS.t1.votes.other = ROOMS.t1.votes.other || ROOMS.t1.picks[1].kakaoId;  // 다른 사람 1표
   r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true }) }); });
+await p.route(API + '/room/edit', r => { const b = JSON.parse(r.request().postData()); const m = ROOMS.t1;
+  if (b.remove) { if (m.picks.length <= 2) return r.fulfill({ contentType:'application/json',
+      body: JSON.stringify({ ok:false, error:'need_picks' }) });
+    m.picks = m.picks.filter(p => p.kakaoId !== b.remove);
+    Object.keys(m.votes).forEach(k => { if (m.votes[k] === b.remove) delete m.votes[k]; }); }
+  else if (b.add) { m.picks.push({ ...b.add, score:0, budget:0 }); }
+  r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true }) }); });
 await p.route(API + '/room/close', r => { const b = JSON.parse(r.request().postData());
   ROOMS.t1.closed = true; ROOMS.t1.winner = b.winner;
   r.fulfill({ contentType:'application/json', body: JSON.stringify({ ok:true }) }); });
@@ -104,6 +111,10 @@ await p.route(API + '/rate', r => { seen.rate.push(JSON.parse(r.request().postDa
   r.fulfill({ contentType: 'application/json', body: JSON.stringify({ ok: true }) }); });
 
 await p.addInitScript(() => { Object.defineProperty(HTMLScriptElement.prototype, 'integrity', { set() {}, get() { return ''; } }); });
+/* 시각을 저녁 19시로 고정한다. 안 그러면 돌리는 시간에 따라 점심/저녁 상황이 달라져 깨진다 */
+await p.addInitScript(() => { const D = Date; const fix = new D(2026, 10, 20, 19, 0).getTime(); const off = fix - D.now();
+  class FD extends D { constructor(...a) { a.length ? super(...a) : super(D.now() + off); } static now() { return D.now() + off; } }
+  window.Date = FD; });
 const log = (...a) => console.log(...a);
 
 /* ── 1. 로그인 전 ───────────────────────────── */
@@ -205,6 +216,19 @@ await p.locator('.pc.vote').first().click(); await p.waitForTimeout(600);
 log('   투표 후 참여:', (await p.textContent('#cnt')).trim(),
   '| 내 표 표시:', await p.locator('.pc.vote[aria-pressed=true]').count(),
   '| 표 숫자:', (await p.$$eval('.pc.vote .vn', e => e.map(x=>x.textContent).filter(Boolean))).join(','));
+/* 후보 고치기 */
+const before = await p.locator('.voterow').count();
+await p.click('#edit'); await p.waitForTimeout(300);
+log('   고치기 모드 — ✕ 버튼:', await p.locator('.voterow .x').count(), '| 검색창:', await p.locator('#addForm').count());
+await p.click('.voterow:last-child .x'); await p.waitForTimeout(700);
+log('   빼기:', before, '→', await p.locator('.voterow').count(), '곳');
+await p.fill('#addq', '추가할집'); await p.press('#addq', 'Enter'); await p.waitForTimeout(800);
+log('   검색 결과:', await p.locator('#addHits .pc').count(), '곳');
+await p.locator('#addHits .pc').first().click(); await p.waitForTimeout(800);
+log('   추가 후:', await p.locator('.voterow').count(), '곳 |',
+  (await p.$$eval('.voterow h3', e => e.map(x => x.textContent.replace(/\s+/g,' ').trim()))).join(' / '));
+await p.click('#edit'); await p.waitForTimeout(300);
+log('   고치기 끝 — ✕ 사라짐:', await p.locator('.voterow .x').count() === 0);
 log('   마감 버튼:', (await p.textContent('#finish')).trim());
 await p.click('#finish'); await p.waitForTimeout(5200);
 log('   마감 후:', (await p.textContent('h1.q')).replace(/\s+/g,' ').trim(),

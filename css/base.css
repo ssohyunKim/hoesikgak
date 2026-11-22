@@ -76,6 +76,11 @@ main { padding: 22px 0 120px; }
 .card.winner small { color: var(--muted); font-size: 12.5px; font-weight: 700; }
 .card.winner h3 { margin: 4px 0 2px; font-size: 20px; font-weight: 800; }
 
+/* 후보 고치기 — 카드 옆에 빼기 버튼 */
+.voterow { display: flex; align-items: center; gap: 8px; }
+.voterow .pc { flex: 1; min-width: 0; }
+.voterow .x { flex: none; }
+
 /* ── 마이페이지 ─────────────────────────────── */
 .mylist { display: grid; gap: 12px; }
 .myitem { padding: 16px; }
