@@ -74,6 +74,51 @@ export function shareSite() {
 /* 회식각 안의 그 가게로 바로 여는 주소. 받은 사람이 평가·위치를 다 볼 수 있다 */
 export const placeUrl = kakaoId => SITE.replace(/\/?$/, "/") + "#/place?k=" + encodeURIComponent(kakaoId);
 
+/* ── 룰렛 결과를 "그림"으로 보내기 ────────────
+   1) OS 공유 시트에 파일을 얹는다 — 카톡 대화방에 사진 그대로 들어간다
+   2) 안 되면 카카오 서버에 올려 카드 이미지로 쓴다 (5MB·100일 보관)
+   3) 둘 다 안 되면 평소 공유로 떨어진다
+   file 은 roulette.js 가 캔버스로 그린 결과 이미지 */
+export async function shareResultImage(file, p, { headline = "" } = {}) {
+  const title = unesc(p.name);
+  const text = [headline, title].filter(Boolean).join("\n");
+  const url = p.kakaoId ? placeUrl(p.kakaoId) : SITE;
+  const canFiles = () => !!(file && navigator.canShare && navigator.canShare({ files: [file] }));
+  const sendFiles = async () => {
+    try { await navigator.share({ files: [file], text: `${text}\n${url}` }); return "files"; }
+    catch (e) { return e && e.name === "AbortError" ? "cancel" : null; }
+  };
+
+  /* 폰에서는 공유 시트에 카카오톡이 있어서 사진이 대화방에 그대로 들어간다.
+     PC 는 공유 시트에 카카오톡이 없을 수 있어 카드(이미지+링크)가 더 낫다 */
+  const phone = matchMedia("(pointer: coarse)").matches;
+  if (phone && canFiles()) {
+    const r = await sendFiles();
+    if (r) return r;
+  }
+  if (file && await withKakao()) {
+    try {
+      const dt = new DataTransfer(); dt.items.add(file);      /* uploadImage 는 FileList 를 받는다 */
+      const up = await Kakao.Share.uploadImage({ file: dt.files });
+      const img = up && up.infos && up.infos.original;
+      if (img && img.url) {
+        Kakao.Share.sendDefault({ objectType: "feed",
+          content: { title, description: headline || "룰렛이 정했어요",
+            imageUrl: img.url, imageWidth: img.width, imageHeight: img.height, link: link(url) },
+          buttons: [{ title: "회식각에서 보기", link: link(url) }] });
+        return "kakao";
+      }
+    } catch (e) { console.warn("룰렛 이미지 공유 실패:", e); }
+  }
+  /* 카카오가 막힌 PC 라면 그제야 공유 시트를 써본다 */
+  if (!phone && canFiles()) {
+    const r = await sendFiles();
+    if (r) return r;
+  }
+  sharePlace(p, { headline, back: url });
+  return "fallback";
+}
+
 /* 결과 공유. 주소가 있으면 위치 템플릿(지도 말풍선), 없으면 글만 */
 export function sharePlace(p, { headline = "", back = SITE } = {}) {
   const title = unesc(p.name);

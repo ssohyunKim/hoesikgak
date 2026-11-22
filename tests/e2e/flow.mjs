@@ -61,7 +61,14 @@ await p.click('#spin'); await p.waitForSelector('#wheel'); await shot('5wheel');
 await p.click('#go'); await p.waitForSelector('.result',{timeout:8000});
 log('winner:',(await p.textContent('.result .win')).trim(),'| meta:',(await p.textContent('.result .meta')).trim());
 await shot('6result');
-await p.click('#share'); await p.waitForTimeout(500); log('shared type:',await p.evaluate(()=>window.__shared&&window.__shared.objectType),'| 링크:',await p.evaluate(()=>{const s=window.__shared;const l=(s.content&&s.content.link)||s.link;return (l&&l.webUrl||'').replace('https://www.hoesikgak.com','');}),
+await p.click('#share'); await p.waitForTimeout(2000);   // 이미지 생성 → 공유 시도 → 폴백까지 // 결과 이미지가 실제로 만들어지나 (공유 경로와 별개로 캔버스 자체를 검사)
+log('결과 이미지:',await p.evaluate(async()=>{ const m=await import('./js/roulette.js');
+  const items=[{name:'가'},{name:'나'},{name:'다'}];
+  const cv=m.resultCanvas(items,-Math.PI/2,items[0]);
+  const d=cv.toDataURL('image/png');
+  return cv.width+'x'+cv.height+' · '+Math.round(d.length/1024)+'KB · png:'+d.startsWith('data:image/png'); }));
+log('업로드된 파일 수:',await p.evaluate(()=>window.__uploaded));
+log('shared type:',await p.evaluate(()=>window.__shared&&window.__shared.objectType),'| 링크:',await p.evaluate(()=>{const s=window.__shared;const l=s&&((s.content&&s.content.link)||s.link);return (l&&l.webUrl||'(공유 안 됨)').replace('https://www.hoesikgak.com','');}),
   '| 썸네일:',await p.evaluate(()=>{const s=window.__shared;return (s&&s.content&&s.content.imageUrl||'(없음)').split('/').pop();}));
 await p.click('#detail'); await p.waitForTimeout(400); log('sheet over stage:',await p.locator('#sheet.on').count()); await shot('7sheet');
 await p.keyboard.press('Escape');

@@ -1,7 +1,7 @@
 /* 🎡 룰렛 → 결과. 낮이든 밤이든 .night 무대 위에서 돌린다 */
-import { drawWheel, spinWheel } from "../roulette.js";
+import { drawWheel, spinWheel, resultImageFile } from "../roulette.js";
 import { rememberSpin } from "../rating.js";
-import { sharePlace } from "../share.js";
+import { shareResultImage } from "../share.js";
 import { fmtDist, man } from "../util.js";
 import { buildHash } from "../router.js";
 import { budgetOf } from "../situations.js";
@@ -56,7 +56,15 @@ export async function render(root, ctx, alive) {
         <button class="btn ghost" id="without">✕ 여기 빼고 다시</button>
       </div></div>`;
     const back = location.origin + location.pathname + buildHash("picks", c);
-    q("#share").onclick = () => sharePlace(p, { headline: ctxLine, back });
+    /* 돌아간 룰렛을 그림으로 떠서 같이 보낸다. 실패하면 share.js 가 평소 공유로 떨어뜨린다 */
+    q("#share").onclick = async e => {
+      const b = e.currentTarget;
+      b.disabled = true; b.textContent = "준비 중…";
+      let file = null;
+      try { file = await resultImageFile(wheel, rot, p); } catch (err) { console.warn("결과 이미지 실패:", err); }
+      await shareResultImage(file, p, { headline: ctxLine });
+      b.disabled = false; b.textContent = "💬 카톡으로 팀에 공유";
+    };
     q("#detail").onclick = () => ctx.openSheet(p);
     q("#again").onclick = go;
     q("#without").onclick = () => ctx.go("spin", { ...c, x: [...c.x, p.kakaoId || p.id] });
